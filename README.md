@@ -43,6 +43,32 @@ npx serve -l 8123
 
 ブラウザで <http://localhost:8123/> を開きます。
 
+## Docker で起動する（frontend / backend / db）
+
+frontend（nginx 静的配信）・backend（Hono + Node）・db（PostgreSQL）を Docker Compose で一括起動できます。
+
+```bash
+# 初回のみ環境変数ファイルを用意（任意。未作成でも既定値で動作）
+cp .env.example .env
+
+# ビルドして起動
+docker compose up -d --build
+
+# 停止
+docker compose down
+# DB データも消す場合
+docker compose down -v
+```
+
+| サービス | URL / 接続先 | 説明 |
+| --- | --- | --- |
+| frontend | <http://localhost:8123/> | nginx で静的配信。`/api/*` は backend へプロキシ |
+| backend | <http://localhost:3000/api/hello> | Hono API（tsx watch でホットリロード） |
+| db | `localhost:5432`（user/pass/db = `rinshouji`） | PostgreSQL 16 |
+
+- `app/frontend` と `app/backend` はコンテナにマウントされ、ソース変更が即反映されます（frontend はブラウザ再読み込み、backend は自動再起動）。
+- DB スキーマ・シードは `db/init/*.sql` に置くと初回起動時に自動実行されます（設計は `設計書/DB設計/` 参照）。
+
 ### デモ用ログイン情報
 
 - 寺務員ID: `tera-admin`
