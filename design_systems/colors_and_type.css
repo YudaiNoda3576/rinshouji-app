@@ -1,0 +1,255 @@
+/* ============================================================
+   Temple Admin Design System — colors_and_type.css
+   Source: YudaiNoda3576/TemplePilgrim (tailwind.config.ts +
+   client/src/index.css). Recreated as plain CSS vars so any
+   HTML artifact can use these tokens directly.
+   ============================================================ */
+
+/* ---------- Webfonts ----------
+   The source codebase doesn't ship a webfont — it inherits the
+   Tailwind default `font-sans` stack. We standardize on Noto
+   Sans JP for Japanese coverage. Substitution flagged.
+*/
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@500;700&display=swap");
+
+:root {
+  /* ============================================================
+     1.  shadcn neutral tokens (HSL — match tailwind.config.ts)
+     ============================================================ */
+  --background:               210 11% 98%;
+  --foreground:               224 71% 4%;
+  --muted:                    215 28% 96%;
+  --muted-foreground:         215 16% 47%;
+  --popover:                  0 0% 100%;
+  --popover-foreground:       224 71% 4%;
+  --card:                     0 0% 100%;
+  --card-foreground:          224 71% 4%;
+  --border:                   215 28% 90%;
+  --input:                    215 28% 90%;
+  --primary:                  214 95% 93%;     /* pale blue tint */
+  --primary-foreground:       214 100% 9%;
+  --secondary:                215 28% 96%;
+  --secondary-foreground:     215 16% 47%;
+  --accent:                   215 28% 96%;
+  --accent-foreground:        215 16% 47%;
+  --destructive:              0 84% 60%;
+  --destructive-foreground:   0 0% 98%;
+  --ring:                     214 95% 93%;
+  --radius:                   0.5rem;
+
+  /* Sidebar (dark variant — defined in tokens, the running app
+     uses a white sidebar; both are valid surfaces.) */
+  --sidebar-background:       224 71% 4%;
+  --sidebar-foreground:       0 0% 98%;
+  --sidebar-primary:          214 95% 93%;
+  --sidebar-primary-foreground: 214 100% 9%;
+  --sidebar-accent:           215 28% 17%;
+  --sidebar-accent-foreground:0 0% 98%;
+  --sidebar-border:           215 28% 17%;
+  --sidebar-ring:             214 95% 93%;
+
+  /* Chart palette (token-level — used by recharts) */
+  --chart-1:                  217 91% 60%;
+  --chart-2:                  158 64% 39%;
+  --chart-3:                  271 91% 65%;
+  --chart-4:                  0 84% 60%;
+  --chart-5:                  43 96% 56%;
+
+  /* ============================================================
+     2.  Domain accent colors (custom — temple-* hex tokens)
+     ============================================================ */
+  --temple-blue:              #2563EB;
+  --temple-blue-hover:        #1D4ED8;   /* press / hover-deeper */
+  --temple-blue-tint:         #DBEAFE;   /* tailwind blue-100  */
+  --temple-blue-ink:          #1E3A8A;   /* darker text on tint */
+
+  --temple-green:             #059669;
+  --temple-green-hover:       #047857;
+  --temple-green-tint:        #D1FAE5;   /* tailwind green-100 */
+  --temple-green-ink:         #064E3B;
+
+  --temple-purple:            #7C3AED;
+  --temple-purple-hover:      #6D28D9;
+  --temple-purple-tint:       #EDE9FE;   /* tailwind purple-100 */
+  --temple-purple-ink:        #4C1D95;
+
+  --temple-red:               #DC2626;
+  --temple-red-hover:         #B91C1C;
+  --temple-red-tint:          #FEE2E2;   /* tailwind red-100 */
+  --temple-red-ink:           #7F1D1D;
+
+  /* ============================================================
+     3.  Semantic colors (resolved — friendly aliases for the
+         vars above, in concrete hex so HTML mocks can use them
+         without dropping into hsl()).
+     ============================================================ */
+  --fg1:           hsl(224 71% 4%);     /* primary text */
+  --fg2:           hsl(215 16% 47%);    /* secondary text / labels */
+  --fg3:           #9CA3AF;             /* tertiary / icon-default (gray-400) */
+  --fg-on-accent:  #FFFFFF;             /* text on accent / sidebar-active */
+
+  --bg-canvas:     #F9FAFB;             /* gray-50 — app background */
+  --bg-surface:    #FFFFFF;             /* white — cards */
+  --bg-muted:      hsl(215 28% 96%);    /* light hover gray */
+  --bg-sidebar:    #FFFFFF;             /* default sidebar (running app) */
+  --bg-sidebar-dark: hsl(224 71% 4%);   /* alt deep-navy sidebar */
+
+  --border-default: hsl(215 28% 90%);
+  --border-strong:  hsl(215 28% 80%);
+
+  /* ============================================================
+     4.  Typography
+     ============================================================ */
+  --font-sans:   "Noto Sans JP", -apple-system, BlinkMacSystemFont,
+                 "Segoe UI", Roboto, "Helvetica Neue", Arial,
+                 "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo,
+                 sans-serif;
+  --font-serif:  "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho",
+                 "MS Mincho", serif;
+  --font-mono:   ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+                 "Liberation Mono", monospace;
+
+  /* Sizes (Tailwind scale, in rem at 16px root) */
+  --text-xs:   0.75rem;   /* 12px — captions, labels, "by ..." */
+  --text-sm:   0.875rem;  /* 14px — body, button labels */
+  --text-base: 1rem;      /* 16px — input text */
+  --text-lg:   1.125rem;  /* 18px — card titles */
+  --text-xl:   1.25rem;   /* 20px — page H2 mobile */
+  --text-2xl:  1.5rem;    /* 24px — page H2 desktop, stat values, auth title */
+  --text-3xl:  1.875rem;  /* 30px — reserved, rarely used */
+
+  /* Weights */
+  --weight-regular:   400;
+  --weight-medium:    500;
+  --weight-semibold:  600;
+  --weight-bold:      700;
+
+  /* Line heights */
+  --leading-tight:    1.2;
+  --leading-snug:     1.35;
+  --leading-normal:   1.5;
+  --leading-relaxed:  1.6;
+
+  /* ============================================================
+     5.  Radii (mirror Tailwind's --radius scale)
+     ============================================================ */
+  --radius-sm:    calc(var(--radius) - 4px);  /* 4px  — chips */
+  --radius-md:    calc(var(--radius) - 2px);  /* 6px  — buttons, inputs */
+  --radius-lg:    var(--radius);              /* 8px  — cards */
+  --radius-xl:    0.75rem;                    /* 12px — large modals */
+  --radius-full:  9999px;
+
+  /* ============================================================
+     6.  Shadows (the only three levels in use)
+     ============================================================ */
+  --shadow-sm:    0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md:    0 4px 6px -1px rgb(0 0 0 / 0.1),
+                  0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg:    0 10px 15px -3px rgb(0 0 0 / 0.1),
+                  0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl:    0 20px 25px -5px rgb(0 0 0 / 0.1),
+                  0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+  /* ============================================================
+     7.  Spacing (Tailwind 4px base — common steps as vars)
+     ============================================================ */
+  --space-1:   0.25rem;  /* 4  */
+  --space-2:   0.5rem;   /* 8  */
+  --space-3:   0.75rem;  /* 12 */
+  --space-4:   1rem;     /* 16 */
+  --space-6:   1.5rem;   /* 24 */
+  --space-8:   2rem;     /* 32 */
+  --space-12:  3rem;     /* 48 */
+  --space-16:  4rem;     /* 64 */
+  --sidebar-w: 16rem;    /* 256 — sidebar fixed width */
+
+  /* ============================================================
+     8.  Motion
+     ============================================================ */
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1); /* tailwind default */
+  --dur-fast:     120ms;
+  --dur-base:     150ms;
+  --dur-slow:     200ms;
+}
+
+/* ============================================================
+   Semantic element styles — apply these classes directly in
+   plain HTML mocks to get default temple-system styling.
+   ============================================================ */
+
+html, body {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--fg1);
+  background: var(--bg-canvas);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headings */
+.h1, h1 {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
+  color: var(--fg1);
+}
+.h2, h2 {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  color: var(--fg1);
+}
+.h3, h3 {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-tight);
+  color: var(--fg1);
+}
+.h4, h4 {
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  color: var(--fg1);
+}
+
+/* Body & utility text */
+.p, p {
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--fg2);
+}
+.caption {
+  font-size: var(--text-xs);
+  color: var(--fg2);
+}
+.label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--fg1);
+}
+.eyebrow {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--fg2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.stat-value {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-semibold);
+  color: var(--fg1);
+  line-height: var(--leading-tight);
+}
+.stat-label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--fg2);
+}
+.code, code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: var(--bg-muted);
+  border-radius: var(--radius-sm);
+  padding: 0.1em 0.3em;
+}

@@ -1,0 +1,25 @@
+<!doctype html>
+<!-- @dsCard group="Components" name="Badges" subtitle="Status badges in domain & semantic colors" viewport="700x120" --><html><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css"><style>
+  body{margin:0;padding:24px;background:#fff;color:var(--fg1);font-family:var(--font-sans);display:flex;flex-wrap:wrap;gap:10px}
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:9999px;border:1px solid transparent;font-size:12px;font-weight:600}
+  .b-default{background:#2563EB;color:#fff}
+  .b-secondary{background:hsl(215 28% 96%);color:hsl(215 16% 47%)}
+  .b-destructive{background:#DC2626;color:#fff}
+  .b-outline{background:#fff;color:var(--fg1);border-color:hsl(215 28% 90%)}
+  .b-success{background:#D1FAE5;color:#064E3B}
+  .b-warn{background:#FEF3C7;color:#92400E}
+  .b-info{background:#DBEAFE;color:#1E3A8A}
+  .b-memorial{background:#EDE9FE;color:#4C1D95}
+  .b-staff{background:#FEE2E2;color:#7F1D1D}
+  .dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+</style></head><body>
+  <span class="badge b-default">管理者</span>
+  <span class="badge b-secondary">下書き</span>
+  <span class="badge b-destructive">取消</span>
+  <span class="badge b-outline">外部</span>
+  <span class="badge b-success"><span class="dot"></span>完了</span>
+  <span class="badge b-warn">保留</span>
+  <span class="badge b-info">お参り</span>
+  <span class="badge b-memorial">年忌</span>
+  <span class="badge b-staff">寺務員</span>
+</body></html>
