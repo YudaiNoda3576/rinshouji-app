@@ -1,0 +1,8 @@
+# ビルド成果物
+dist/
+
+# TypeScript インクリメンタルビルド情報
+*.tsbuildinfo
+
+# 依存関係
+node_modules/

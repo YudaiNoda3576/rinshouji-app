@@ -60,10 +60,8 @@ services:
     restart: unless-stopped
     ports:
       - "${FRONTEND_PORT:-8123}:80"
-    volumes:
-      # 静的ファイルをマウントしてブラウザ再読み込みだけで変更を反映する。
-      - ./app/frontend:/usr/share/nginx/html:ro
-      - ./app/frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    # Vite でビルドした静的成果物を nginx が配信する（イメージに同梱）。
+    # 変更を反映するには `docker compose up -d --build frontend` で再ビルドする。
     depends_on:
       - backend
 
