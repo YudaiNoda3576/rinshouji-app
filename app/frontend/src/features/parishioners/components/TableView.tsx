@@ -1,10 +1,11 @@
 import { TEMPLE_SECTS } from '@/constants/temple';
 
+import { Pill } from '@/components/ui/Pill';
+
 import { fmtRelativeDate } from '../constants';
 import type { ParishFamily } from '../types';
 
 import { Kamon } from './Kamon';
-import { Pill } from './Pill';
 
 interface TableViewProps {
   items: ParishFamily[];

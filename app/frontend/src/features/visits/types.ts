@@ -1,7 +1,9 @@
 // visits（お参り記録）ドメインの型。
 
-// Pill / StatusDot で使う配色キー。
-export type PillColor = 'blue' | 'purple' | 'green' | 'gray';
+import type { PillColor } from '@/components/ui/Pill';
+
+// Pill / StatusDot で使う配色キー（共通コンポーネントの型を再エクスポート）。
+export type { PillColor };
 
 // お参りの種別（月命日・年忌法要など）。
 export interface VisitKind {

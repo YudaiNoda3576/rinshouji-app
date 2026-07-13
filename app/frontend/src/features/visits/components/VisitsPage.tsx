@@ -1,9 +1,10 @@
 import * as React from 'react';
 
+import { ChipGroup } from '@/components/ui/ChipGroup';
+import { Pill } from '@/components/ui/Pill';
+
 import { buildVisits, fmtJDate, fmtTime, fmtYen, isToday, KINDS, STATUS } from '../constants';
 
-import { ChipGroup } from './ChipGroup';
-import { Pill } from './Pill';
 import { StatusDot } from './StatusDot';
 import { VisitDetail } from './VisitDetail';
 

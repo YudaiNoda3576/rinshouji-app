@@ -1,3 +1,4 @@
+// セグメント切替用のチップ群（全 feature 共通）。
 export interface ChipOption {
   key: string;
   label: string;

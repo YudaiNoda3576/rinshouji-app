@@ -16,7 +16,9 @@ export default defineConfig({
     port: 8123,
     proxy: {
       '/api': {
-        target: 'http://backend:3000',
+        // ネイティブ実行時は launch.json の backend (PORT=3002) へ。
+        // Docker 内など別環境では VITE_PROXY_TARGET で上書きする。
+        target: process.env.VITE_PROXY_TARGET ?? 'http://localhost:3002',
         changeOrigin: true,
       },
     },

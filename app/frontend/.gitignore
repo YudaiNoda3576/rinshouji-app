@@ -6,3 +6,6 @@ dist/
 
 # 依存関係
 node_modules/
+
+# Storybook ビルド成果物
+storybook-static/

@@ -2,9 +2,10 @@ import * as React from 'react';
 
 import { TEMPLE_SECTS } from '@/constants/temple';
 
+import { ChipGroup } from '@/components/ui/ChipGroup';
+
 import { PARISH_FAMILIES, buildMembers, daysAgo } from '../constants';
 
-import { ChipGroup } from './ChipGroup';
 import { ParishDetail } from './ParishDetail';
 import { TableView } from './TableView';
 

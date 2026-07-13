@@ -4,10 +4,16 @@
 #   停止:   docker compose down
 #   ログ:   docker compose logs -f
 #
+# Storybook はコンポーネントカタログ用の別サービス（profile: storybook）。
+# 既定の `up` では起動せず、明示的に指定したときだけ起動する。
+#   起動:   docker compose up -d storybook
+#   停止:   docker compose stop storybook
+#
 # 接続先:
-#   - フロントエンド: http://localhost:8123
+#   - フロントエンド:  http://localhost:8123
 #   - バックエンドAPI: http://localhost:3000/api/hello
-#   - PostgreSQL:     localhost:5432
+#   - PostgreSQL:      localhost:5432
+#   - Storybook:       http://localhost:8124
 
 services:
   db:
@@ -65,6 +71,32 @@ services:
     depends_on:
       - backend
 
+  storybook:
+    # コンポーネントカタログ（Storybook dev サーバー）。
+    # backend と同様にソースをマウントし、node_modules はコンテナ側を使う。
+    # profile を付けているため、既定の `docker compose up` では起動しない。
+    #   起動: docker compose up -d storybook   （サービス名を明示すれば profile でも起動する）
+    image: node:24-alpine
+    container_name: rinshouji-storybook
+    profiles: ["storybook"]
+    working_dir: /app
+    environment:
+      TZ: Asia/Tokyo
+    ports:
+      # frontend(8123) の隣。6006 は他プロジェクトと衝突しやすいため避ける。
+      - "${STORYBOOK_PORT:-8124}:8124"
+    volumes:
+      # ソースをマウントして Story 変更のホットリロードを有効化する。
+      - ./app/frontend:/app
+      # node_modules はコンテナ内のもの（Linux ネイティブ）を優先する。
+      - frontend-node-modules:/app/node_modules
+    # 初回（node_modules 空）のみ依存をインストールしてから dev サーバーを起動する。
+    # コンテナ外からアクセスするため 0.0.0.0 で待ち受ける。
+    command: >
+      sh -c "[ -x node_modules/.bin/storybook ] || npm install --no-audit --no-fund;
+             npm run storybook -- --host 0.0.0.0 --ci"
+
 volumes:
   db-data:
   backend-node-modules:
+  frontend-node-modules:

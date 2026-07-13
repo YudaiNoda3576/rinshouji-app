@@ -1,8 +1,5 @@
 // parishioners（檀家管理）ドメインの型。
 
-// Pill で使う配色キー。
-export type PillColor = 'blue' | 'purple' | 'green' | 'gray';
-
 // 檀家家1件分の情報。
 export interface ParishFamily {
   id: string;

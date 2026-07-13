@@ -1,7 +1,8 @@
 import { fmtJDate, fmtTime, fmtYen } from '../constants';
 import type { Visit } from '../types';
 
-import { Pill } from './Pill';
+import { Pill } from '@/components/ui/Pill';
+
 import { StatusDot } from './StatusDot';
 
 interface VisitDetailProps {
