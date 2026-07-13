@@ -5,19 +5,37 @@ import * as React from 'react';
 import type { PushToast } from '@/types/toast';
 
 import { MEMORIAL_ENTRIES } from '../constants';
+import type { MemorialEntry, NewMemorialForm } from '../types';
 import { fmtJpDateShort, toEra, yearsUntil } from '../utils';
 import { MemorialDetail } from './MemorialDetail';
+import { NewMemorialDialog } from './NewMemorialDialog';
 
 interface MemorialPageProps {
   onOpenNew: () => void;
   onToast?: PushToast;
 }
 
-export function MemorialPage({ onOpenNew }: MemorialPageProps) {
+function toNewMemorialForm(entry: MemorialEntry): NewMemorialForm {
+  return {
+    prefix: entry.prefix,
+    name: entry.name,
+    rank: entry.rank,
+    secular: entry.secular,
+    age: String(entry.age),
+    deceased: entry.deceased,
+    family: entry.family,
+    relation: entry.relation,
+    sect: entry.sect,
+    notes: entry.notes,
+  };
+}
+
+export function MemorialPage({ onOpenNew, onToast }: MemorialPageProps) {
   const [q, setQ] = React.useState('');
   const [familyFilter, setFamilyFilter] = React.useState('all');
   const [sort, setSort] = React.useState('upcoming'); // upcoming | recent | name
   const [selectedId, setSelectedId] = React.useState(MEMORIAL_ENTRIES[0].id);
+  const [editOpen, setEditOpen] = React.useState(false);
 
   const families = React.useMemo(() => {
     const set = new Set(MEMORIAL_ENTRIES.map(e => e.family));
@@ -32,8 +50,7 @@ export function MemorialPage({ onOpenNew }: MemorialPageProps) {
         return (
           e.kaimyo.toLowerCase().includes(ql) ||
           e.secular.toLowerCase().includes(ql) ||
-          e.family.toLowerCase().includes(ql) ||
-          e.id.toLowerCase().includes(ql)
+          e.family.toLowerCase().includes(ql)
         );
       }
       return true;
@@ -55,6 +72,7 @@ export function MemorialPage({ onOpenNew }: MemorialPageProps) {
   }, [q, familyFilter, sort]);
 
   const selected = filtered.find(e => e.id === selectedId) || filtered[0] || MEMORIAL_ENTRIES[0];
+  const editInitial = React.useMemo(() => (selected ? toNewMemorialForm(selected) : undefined), [selected]);
 
   React.useEffect(() => {
     if (filtered.length && !filtered.find(e => e.id === selectedId)) {
@@ -76,10 +94,6 @@ export function MemorialPage({ onOpenNew }: MemorialPageProps) {
           <p>戒名と年忌の記録を管理します。</p>
         </div>
         <div className="head-actions">
-          <button className="btn ghost" type="button">
-            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-            年忌一覧を書き出す
-          </button>
           <button className="btn primary purple" type="button" onClick={onOpenNew}>
             <svg viewBox="0 0 24 24"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
             新規登録
@@ -115,7 +129,7 @@ export function MemorialPage({ onOpenNew }: MemorialPageProps) {
       <div className="memorial-tools">
         <div className="search-wrap">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="戒名・俗名・家名・記録番号で検索" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="戒名・俗名・家名で検索" />
         </div>
         <div className="mt-filter">
           <label>家</label>
@@ -141,7 +155,13 @@ export function MemorialPage({ onOpenNew }: MemorialPageProps) {
           {filtered.length === 0 ? (
             <div className="empty">該当する記録はありません。</div>
           ) : (
-            <ul className="memorial-list">
+            <>
+              <div className="memorial-list-head">
+                <div className="mlh-main">戒名・俗名</div>
+                <div className="mlh-date">没年月日</div>
+                <div className="mlh-next">次の年忌</div>
+              </div>
+              <ul className="memorial-list">
               {filtered.map(entry => {
                 const days = yearsUntil(entry.nextDate);
                 const upcoming = days >= 0 && days <= 365;
@@ -150,9 +170,6 @@ export function MemorialPage({ onOpenNew }: MemorialPageProps) {
                   <li key={entry.id}
                       className={'memorial-row' + (entry.id === selectedId ? ' selected' : '')}
                       onClick={() => setSelectedId(entry.id)}>
-                    <div className="mr-mark">
-                      <div className="memo-sigil"><span>戒</span></div>
-                    </div>
                     <div className="mr-main">
                       <div className="mr-kaimyo">{entry.kaimyo}</div>
                       <div className="mr-sub">
@@ -183,12 +200,23 @@ export function MemorialPage({ onOpenNew }: MemorialPageProps) {
                   </li>
                 );
               })}
-            </ul>
+              </ul>
+            </>
           )}
         </div>
 
-        <MemorialDetail entry={selected} />
+        <MemorialDetail entry={selected} onEdit={() => setEditOpen(true)} />
       </div>
+
+      <NewMemorialDialog
+        open={editOpen}
+        initial={editInitial}
+        onClose={() => setEditOpen(false)}
+        onSave={(form) => {
+          setEditOpen(false);
+          onToast?.({ kind: 'success', title: '過去帳を更新しました。', desc: (form.prefix + ' ' + form.name + ' ' + form.rank).trim() + ' / ' + form.secular });
+        }}
+      />
     </div>
   );
 }

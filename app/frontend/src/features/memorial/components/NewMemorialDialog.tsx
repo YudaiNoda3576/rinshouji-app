@@ -14,24 +14,29 @@ import type { NewMemorialForm } from '../types';
 
 interface NewMemorialDialogProps {
   open: boolean;
+  initial?: NewMemorialForm;
   onClose: () => void;
   onSave: (form: NewMemorialForm) => void;
 }
 
-export function NewMemorialDialog({ open, onClose, onSave }: NewMemorialDialogProps) {
-  const [form, setForm] = React.useState<NewMemorialForm>({
-    prefix: '釈',
-    name: '',
-    rank: '信士',
-    secular: '',
-    age: '',
-    deceased: '2026-05-11',
-    family: '佐藤家',
-    relation: '父',
-    sect: 0,
-    notes: '',
-  });
+const EMPTY_FORM: NewMemorialForm = {
+  prefix: '釈',
+  name: '',
+  rank: '信士',
+  secular: '',
+  age: '',
+  deceased: '2026-05-11',
+  family: '佐藤家',
+  relation: '父',
+  sect: 0,
+  notes: '',
+};
+
+export function NewMemorialDialog({ open, initial, onClose, onSave }: NewMemorialDialogProps) {
+  const [form, setForm] = React.useState<NewMemorialForm>(initial ?? EMPTY_FORM);
+  React.useEffect(() => { if (open) setForm(initial ?? EMPTY_FORM); }, [open, initial]);
   if (!open) return null;
+  const isEdit = Boolean(initial);
 
   const set = <K extends keyof NewMemorialForm>(k: K, v: NewMemorialForm[K]) =>
     setForm(f => ({ ...f, [k]: v }));
@@ -42,7 +47,7 @@ export function NewMemorialDialog({ open, onClose, onSave }: NewMemorialDialogPr
       <div className="dialog memorial-dialog" style={{ width: 720 }} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <h3>新規 過去帳登録</h3>
+            <h3>{isEdit ? '過去帳を編集' : '新規 過去帳登録'}</h3>
             <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--fg2)' }}>戒名と俗名、没年月日を記録します。</p>
           </div>
           <button className="x-btn" onClick={onClose} aria-label="閉じる">
@@ -113,7 +118,7 @@ export function NewMemorialDialog({ open, onClose, onSave }: NewMemorialDialogPr
         </div>
         <footer>
           <button className="btn outline" type="button" onClick={onClose}>キャンセル</button>
-          <button className="btn primary purple" type="button" onClick={() => onSave(form)} disabled={!form.name || !form.secular}>登録する</button>
+          <button className="btn primary purple" type="button" onClick={() => onSave(form)} disabled={!form.name || !form.secular}>{isEdit ? '保存する' : '登録する'}</button>
         </footer>
       </div>
     </div>

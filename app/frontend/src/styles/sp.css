@@ -136,13 +136,14 @@
 @media (max-width: 640px) {
   .memorial-body { grid-template-columns: 1fr !important; }
   .memorial-detail { position: static; max-height: none; }
+  .memorial-list-head { display: none !important; }
   .memorial-row {
-    grid-template-columns: 40px 1fr !important;
+    grid-template-columns: 1fr !important;
     row-gap: 8px !important;
     padding: 12px 14px !important;
   }
   .memorial-row .mr-date { display: none !important; }
-  .memorial-row .mr-next { grid-column: 2 / -1; text-align: left; }
+  .memorial-row .mr-next { grid-column: 1 / -1; text-align: left; }
   .next-chip { flex-direction: row !important; gap: 6px !important; }
   .md-kaimyo { font-size: 20px; }
   .md-meta { grid-template-columns: 1fr 1fr; }
