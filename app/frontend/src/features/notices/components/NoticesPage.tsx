@@ -5,14 +5,16 @@ import type { PushToast } from '@/types/toast';
 import { NOTICE_CASES, NOTICE_STATUS, TODAY } from '../constants';
 import type { NoticeGroupBy, NoticePeriod, NoticeStatusFilter } from '../types';
 import { daysUntil, fmtDate, fmtMonth } from '../utils';
+import { EditNoticeDialog } from './EditNoticeDialog';
 import { NoticeDetail } from './NoticeDetail';
 import { SendNoticesDialog } from './SendNoticesDialog';
+import { TemplateSettingsDialog } from './TemplateSettingsDialog';
 
 interface NoticesPageProps {
   onToast?: PushToast;
 }
 
-export function NoticesPage(_props: NoticesPageProps) {
+export function NoticesPage({ onToast }: NoticesPageProps) {
   const [period, setPeriod] = React.useState<NoticePeriod>('1y'); // 1y / 6m / next3m
   const [statusFilter, setStatusFilter] = React.useState<NoticeStatusFilter>('all');
   const [groupBy, setGroupBy] = React.useState<NoticeGroupBy>('month'); // month / family / status
@@ -20,6 +22,8 @@ export function NoticesPage(_props: NoticesPageProps) {
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
   const [detailId, setDetailId] = React.useState('N-001');
   const [showSendDialog, setShowSendDialog] = React.useState(false);
+  const [showTemplates, setShowTemplates] = React.useState(false);
+  const [editOpen, setEditOpen] = React.useState(false);
 
   const periodEnd = React.useMemo(() => {
     const d = new Date(TODAY);
@@ -93,13 +97,9 @@ export function NoticesPage(_props: NoticesPageProps) {
           <p>過去帳から該当する年忌を抽出し、案内状の作成・送付・出欠確認をまとめて行います。</p>
         </div>
         <div className="head-actions">
-          <button className="btn ghost" type="button">
-            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-            一覧をCSV出力
-          </button>
-          <button className="btn ghost" type="button">
-            <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
-            印刷プレビュー
+          <button className="btn ghost" type="button" onClick={() => setShowTemplates(true)}>
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>
+            テンプレート設定
           </button>
         </div>
       </div>
@@ -240,9 +240,7 @@ export function NoticesPage(_props: NoticesPageProps) {
                         {status.label}
                       </span>
                       {c.sentVia && (
-                        <span className="via-chip" title={c.sentVia === 'line' ? 'LINEで送付' : 'メールで送付'}>
-                          {c.sentVia === 'line' ? 'LINE' : 'メール'}
-                        </span>
+                        <span className="via-chip" title="メールで送付">メール</span>
                       )}
                     </div>
                     <div className="nl-resp">
@@ -259,10 +257,24 @@ export function NoticesPage(_props: NoticesPageProps) {
           )}
         </div>
 
-        <NoticeDetail c={detail} />
+        <NoticeDetail c={detail} onEdit={() => setEditOpen(true)} />
       </div>
 
       <SendNoticesDialog open={showSendDialog} onClose={() => setShowSendDialog(false)} count={selectedPending.length} />
+      <TemplateSettingsDialog
+        open={showTemplates}
+        onClose={() => setShowTemplates(false)}
+        onSave={() => onToast?.({ kind: 'success', title: 'テンプレートを保存しました。' })}
+      />
+      <EditNoticeDialog
+        open={editOpen}
+        notice={detail}
+        onClose={() => setEditOpen(false)}
+        onSave={() => {
+          setEditOpen(false);
+          onToast?.({ kind: 'success', title: '案内を更新しました。', desc: `${detail.kaimyo}（${detail.family}）` });
+        }}
+      />
     </div>
   );
 }

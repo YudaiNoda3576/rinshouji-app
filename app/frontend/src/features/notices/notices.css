@@ -139,15 +139,6 @@
 .nd-meta dd { margin: 0; font-size: 13px; color: var(--fg1); }
 .nd-meta dd .dim { color: var(--fg2); font-size: 12px; }
 
-.nd-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border-default); margin-bottom: 14px; }
-.nd-tab {
-  background: none; border: 0; border-bottom: 2px solid transparent;
-  padding: 8px 12px; font-size: 12px; font-weight: 500; color: var(--fg2); cursor: pointer; font-family: inherit;
-  transition: color .15s, border-color .15s;
-}
-.nd-tab:hover { color: var(--fg1); }
-.nd-tab.on { color: var(--temple-purple); border-color: var(--temple-purple); font-weight: 600; }
-
 /* Letter preview */
 .letter-preview {
   background: #fdfcf7; border: 1px solid hsl(40 30% 88%); border-radius: 4px;
@@ -166,24 +157,36 @@
 .lp-detail dd { margin: 0; color: #2a2520; }
 .lp-sign { text-align: right; margin-top: 20px; font-size: 12px; letter-spacing: .08em; }
 
-/* LINE preview */
-.line-preview { padding: 8px; background: #8aa6d0; border-radius: 4px; }
-.line-bubble {
-  background: #fff; border-radius: 8px; padding: 14px 16px; font-size: 12px; line-height: 1.7; color: #2a2520;
-  position: relative;
-  margin-left: 28px;
+/* Templates (テンプレート設定ダイアログ。旧 settings.css より複製) */
+.tpl-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 18px; }
+.tpl-list { display: flex; flex-direction: column; gap: 4px; }
+.tpl-row {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  background: #fff; border: 1px solid var(--border-default); border-radius: 6px;
+  cursor: pointer; font-family: inherit; text-align: left; transition: background-color .12s;
 }
-.line-bubble::before {
-  content: ''; position: absolute; left: -6px; top: 12px;
-  border: 6px solid transparent; border-right-color: #fff; border-left: 0;
+.tpl-row:hover { background: hsl(210 11% 98%); }
+.tpl-row.on { background: var(--temple-purple-tint); border-color: var(--temple-purple); }
+.tpl-name { font-size: 12px; color: var(--fg1); }
+.tpl-add { margin-top: 6px; justify-content: center; }
+
+.tpl-edit { display: flex; flex-direction: column; gap: 10px; }
+.tpl-edit-head { display: flex; gap: 8px; }
+.tpl-edit-head .input-plain { flex: 1; }
+.tpl-vars { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 8px 10px; background: hsl(210 11% 98%); border: 1px solid var(--border-default); border-radius: 6px; }
+.tpl-vars-l { font-size: 11px; color: var(--fg2); font-weight: 600; margin-right: 4px; }
+.tpl-var-chip {
+  background: #fff; border: 1px solid var(--border-default); border-radius: 4px;
+  padding: 3px 8px; font-size: 11px; font-family: ui-monospace, monospace; color: var(--temple-purple);
+  cursor: pointer; transition: background-color .12s;
 }
-.line-bubble-head { font-size: 11px; font-weight: 600; color: var(--temple-purple); margin-bottom: 6px; }
-.line-bubble p { margin: 0 0 8px; }
-.line-time { font-size: 11px; color: var(--fg2); }
-.line-actions { display: flex; gap: 6px; margin-top: 12px; padding-top: 10px; border-top: 1px solid hsl(40 20% 92%); }
-.line-btn { flex: 1; padding: 7px 0; font-size: 12px; font-weight: 600; border: 1px solid var(--border-default); background: #fff; border-radius: 6px; cursor: pointer; font-family: inherit; }
-.line-btn.confirm { background: var(--temple-green); color: #fff; border-color: var(--temple-green); }
-.line-btn.decline { background: #fff; color: var(--fg1); }
+.tpl-var-chip:hover { background: var(--temple-purple-tint); }
+.tpl-body {
+  font-family: 'Noto Serif JP', serif; font-size: 13px; line-height: 1.9;
+  padding: 14px 16px; border: 1px solid var(--border-default); border-radius: 6px;
+  background: #fdfcf7; resize: vertical; min-height: 240px; color: #2a2520;
+}
+.tpl-edit-foot { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
 
 /* Send dialog */
 .channel-picker { display: flex; flex-direction: column; gap: 8px; }
@@ -197,7 +200,6 @@
 .ch-card input { margin: 0; accent-color: var(--temple-purple); }
 .ch-icon { width: 36px; height: 36px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; flex: none; }
 .ch-icon svg { width: 18px; height: 18px; }
-.ch-icon.line { background: #06C755; color: #fff; }
 .ch-icon.mail { background: var(--temple-blue-tint); color: var(--temple-blue); }
 .ch-icon.mail svg { stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .ch-icon.print { background: hsl(210 11% 92%); color: var(--fg1); }

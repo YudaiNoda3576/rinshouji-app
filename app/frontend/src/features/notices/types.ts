@@ -4,7 +4,13 @@ export type NoticeStatusKey = 'pending' | 'sent' | 'confirmed' | 'declined';
 
 export type NoticePriority = 'high' | 'medium' | 'low';
 
-export type NoticeChannel = 'line' | 'mail';
+export type NoticeChannel = 'mail';
+
+// 案内テンプレート（郵送/メール系のみ。channel 概念は廃止）。
+export interface NoticeTemplate {
+  id: string;
+  name: string;
+}
 
 export interface NoticeKaiki {
   years: number;

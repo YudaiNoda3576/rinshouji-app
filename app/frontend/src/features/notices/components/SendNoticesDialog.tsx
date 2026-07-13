@@ -7,7 +7,7 @@ interface SendNoticesDialogProps {
 }
 
 export function SendNoticesDialog({ open, onClose, count }: SendNoticesDialogProps) {
-  const [channel, setChannel] = React.useState<'line' | 'mail' | 'print'>('line');
+  const [channel, setChannel] = React.useState<'mail' | 'print'>('mail');
   const [sendAt, setSendAt] = React.useState<'now' | 'scheduled'>('now');
   if (!open) return null;
   return (
@@ -26,16 +26,6 @@ export function SendNoticesDialog({ open, onClose, count }: SendNoticesDialogPro
           <div className="form-field" style={{marginBottom: 16}}>
             <label>送付方法</label>
             <div className="channel-picker">
-              <label className={'ch-card' + (channel === 'line' ? ' on' : '')}>
-                <input type="radio" name="ch" checked={channel === 'line'} onChange={() => setChannel('line')} />
-                <div className="ch-icon line">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.5 2 2 5.6 2 10c0 4 3.7 7.3 8.7 7.9.3.1.7.2.8.5.1.2.1.6.1.8l-.1.7c0 .2-.2.9.8.5.9-.4 5.1-3 7-5.2 1.3-1.4 1.7-2.9 1.7-4.7 0-4.4-4.5-8-10-8z"/></svg>
-                </div>
-                <div className="ch-info">
-                  <div className="ch-label">LINE</div>
-                  <div className="ch-desc">即時配信・既読/返答が把握できる</div>
-                </div>
-              </label>
               <label className={'ch-card' + (channel === 'mail' ? ' on' : '')}>
                 <input type="radio" name="ch" checked={channel === 'mail'} onChange={() => setChannel('mail')} />
                 <div className="ch-icon mail">
@@ -80,7 +70,7 @@ export function SendNoticesDialog({ open, onClose, count }: SendNoticesDialogPro
             </div>
             <div className="ss-row">
               <span>送付方法</span>
-              <strong>{channel === 'line' ? 'LINE' : channel === 'mail' ? 'メール' : '郵送 (印刷)'}</strong>
+              <strong>{channel === 'mail' ? 'メール' : '郵送 (印刷)'}</strong>
             </div>
             <div className="ss-row">
               <span>送付日時</span>
