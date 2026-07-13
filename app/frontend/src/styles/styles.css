@@ -685,7 +685,7 @@ a { color: inherit; }
   padding: 12px 14px; background: hsl(210 11% 98%); border-radius: 6px;
   border: 1px solid var(--border-default);
 }
-.action-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.action-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
 .action-row .btn { flex: 1; justify-content: center; min-width: 0; }
 .action-row .btn svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .btn.primary.purple { background: var(--temple-purple); }
@@ -1197,7 +1197,7 @@ a { color: inherit; }
 .parish-table { overflow: hidden; }
 .ptbl-head, .ptbl-row {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 80px 110px 1.1fr 80px 1.2fr;
+  grid-template-columns: 1.4fr 1fr 80px 1.1fr 80px 1.2fr;
   gap: 14px; padding: 12px 18px; align-items: center;
 }
 .ptbl-head {
@@ -1213,7 +1213,6 @@ a { color: inherit; }
 .ptbl-row.selected { background: color-mix(in oklab, var(--accent-color, var(--temple-blue)) 7%, white); }
 .ptbl-row .c-name { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .ptbl-row .c-name > div { min-width: 0; flex: 1; }
-.kamon-cell { width: 32px; height: 32px; border-radius: 50%; background: hsl(210 11% 96%); display: flex; align-items: center; justify-content: center; color: var(--fg1); flex: none; }
 .ptbl-row .t1 { font-weight: 600; color: var(--fg1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ptbl-row .t2 { font-size: 11px; color: var(--fg2); margin-top: 2px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ptbl-row .c-mem b { font-variant-numeric: tabular-nums; font-weight: 600; }
@@ -1300,18 +1299,12 @@ a { color: inherit; }
 .m-sub { font-size: 11px; color: var(--fg2); margin-top: 2px; font-variant-numeric: tabular-nums; }
 .member-row.deceased .m-name { color: var(--temple-purple); }
 .m-dec-mark { font-size: 10px; padding: 1px 6px; border-radius: 9999px; background: var(--temple-purple-tint); color: #4C1D95; font-weight: 600; }
-.scheduled-card { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border-default); border-radius: 8px; background: hsl(210 11% 99%); }
-.scheduled-card .sc-ico { width: 32px; height: 32px; border-radius: 50%; background: var(--temple-purple-tint); display: flex; align-items: center; justify-content: center; flex: none; }
-.scheduled-card .sc-title { font-size: 13px; font-weight: 600; }
-.scheduled-card .sc-sub { font-size: 11px; color: var(--fg2); margin-top: 2px; }
-.scheduled-card > div:nth-child(2) { flex: 1; min-width: 0; }
-.scheduled-card .btn-sm { flex: none; }
 
 @media (max-width: 1280px) {
   .parish-body { grid-template-columns: 1fr; }
   .parish-detail { position: static; }
   .ptbl-head, .ptbl-row {
-    grid-template-columns: 1.4fr 1fr 70px 100px 100px 70px;
+    grid-template-columns: 1.4fr 1fr 70px 100px 70px;
     gap: 12px; padding: 12px 16px;
   }
   .ptbl-head .c-sched, .ptbl-row .c-sched { display: none; }
@@ -1320,8 +1313,7 @@ a { color: inherit; }
   .ptbl-head, .ptbl-row {
     grid-template-columns: 1.4fr 1fr 70px 100px;
   }
-  .ptbl-head .c-anc, .ptbl-row .c-anc,
-  .ptbl-head .c-sect, .ptbl-row .c-sect { display: none; }
+  .ptbl-head .c-anc, .ptbl-row .c-anc { display: none; }
 }
 @media (max-width: 760px) {
   .ptbl-head, .ptbl-row {

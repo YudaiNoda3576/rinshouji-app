@@ -127,7 +127,7 @@
     row-gap: 4px !important; padding: 12px 14px;
   }
   .ptbl-row .c-name { grid-column: 1 / -1; }
-  .ptbl-row .c-head, .ptbl-row .c-mem, .ptbl-row .c-sect, .ptbl-row .c-visit, .ptbl-row .c-anc, .ptbl-row .c-sched { display: none !important; }
+  .ptbl-row .c-head, .ptbl-row .c-mem, .ptbl-row .c-visit, .ptbl-row .c-anc, .ptbl-row .c-sched { display: none !important; }
 }
 
 /* ============================================================

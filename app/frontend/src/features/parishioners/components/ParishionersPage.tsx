@@ -1,12 +1,14 @@
 import * as React from 'react';
 
-import { TEMPLE_SECTS } from '@/constants/temple';
 import type { PushToast } from '@/types/toast';
 
 import { ChipGroup } from '@/components/ui/ChipGroup';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 import { PARISH_FAMILIES, buildMembers, daysAgo } from '../constants';
+import type { NewParishForm, ParishFamily } from '../types';
 
+import { NewParishDialog } from './NewParishDialog';
 import { ParishDetail } from './ParishDetail';
 import { TableView } from './TableView';
 
@@ -15,16 +17,29 @@ interface ParishionersPageProps {
   onToast?: PushToast;
 }
 
-export function ParishionersPage({ onOpenNew }: ParishionersPageProps) {
+function toNewParishForm(f: ParishFamily): NewParishForm {
+  return {
+    name: f.name,
+    head: f.head,
+    sect: f.sect,
+    members: f.members,
+    addr: f.addr,
+    phone: f.phone,
+    zone: f.zone,
+    note: '',
+  };
+}
+
+export function ParishionersPage({ onOpenNew, onToast }: ParishionersPageProps) {
   const all = PARISH_FAMILIES;
   const [q, setQ] = React.useState('');
-  const [sectFilter, setSectFilter] = React.useState('all');
   const [sortKey, setSortKey] = React.useState('lastVisit');
   const [selectedId, setSelectedId] = React.useState(all[0].id);
+  const [editOpen, setEditOpen] = React.useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
 
   const filtered = all.filter(f =>
-    (sectFilter === 'all' || f.sect === Number(sectFilter)) &&
-    (q === '' || f.name.includes(q) || f.head.includes(q) || f.id.toLowerCase().includes(q.toLowerCase()) || f.addr.includes(q))
+    q === '' || f.name.includes(q) || f.head.includes(q) || f.addr.includes(q)
   );
   const sorted = [...filtered].sort((a, b) => {
     if (sortKey === 'name') return a.name.localeCompare(b.name, 'ja');
@@ -34,6 +49,7 @@ export function ParishionersPage({ onOpenNew }: ParishionersPageProps) {
   });
   const selected = all.find(f => f.id === selectedId) || sorted[0];
   const members = selected ? buildMembers(selected.name) : [];
+  const editInitial = React.useMemo(() => (selected ? toNewParishForm(selected) : undefined), [selected]);
 
   return (
     <div className="parish-page">
@@ -43,10 +59,6 @@ export function ParishionersPage({ onOpenNew }: ParishionersPageProps) {
           <p>檀家家別の情報、家族構成、過去帳、お参り履歴を管理します。</p>
         </div>
         <div className="head-actions">
-          <button className="btn outline">
-            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-            名簿を書き出し
-          </button>
           <button className="btn primary" onClick={onOpenNew}>
             <svg viewBox="0 0 24 24"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
             新規檀家登録
@@ -57,12 +69,8 @@ export function ParishionersPage({ onOpenNew }: ParishionersPageProps) {
       <div className="parish-tools">
         <div className="search-wrap">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
-          <input placeholder="家名・戸主名・住所・檀家番号で検索" value={q} onChange={(e) => setQ(e.target.value)} />
+          <input placeholder="家名・戸主名・住所で検索" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
-        <ChipGroup label="宗派"
-          value={sectFilter}
-          options={[{ key: 'all', label: 'すべて' }, ...TEMPLE_SECTS.map((s, i) => ({ key: String(i), label: s }))]}
-          onChange={setSectFilter} />
         <ChipGroup label="並び"
           value={sortKey}
           options={[
@@ -79,9 +87,34 @@ export function ParishionersPage({ onOpenNew }: ParishionersPageProps) {
         <TableView items={sorted} selected={selectedId} onSelect={setSelectedId} />
 
         <aside className="parish-detail card-block">
-          {selected && <ParishDetail f={selected} members={members} />}
+          {selected && <ParishDetail f={selected} members={members} onEdit={() => setEditOpen(true)} />}
         </aside>
       </div>
+
+      <NewParishDialog
+        open={editOpen}
+        initial={editInitial}
+        onClose={() => setEditOpen(false)}
+        onSave={(form) => {
+          setEditOpen(false);
+          onToast?.({ kind: 'success', title: '檀家情報を更新しました。', desc: form.name + '家 / ' + form.head });
+        }}
+        onDelete={() => setDeleteConfirmOpen(true)}
+      />
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title="檀家を削除しますか?"
+        body={selected ? <>「{selected.name}家」の情報を削除します。この操作は取り消せません。</> : null}
+        confirmLabel="削除する"
+        danger
+        onConfirm={() => {
+          setDeleteConfirmOpen(false);
+          setEditOpen(false);
+          onToast?.({ kind: 'info', title: '檀家を削除しました。', desc: selected ? selected.name + '家' : undefined });
+        }}
+        onCancel={() => setDeleteConfirmOpen(false)}
+      />
     </div>
   );
 }
