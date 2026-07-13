@@ -27,7 +27,7 @@ export function SectionNotifications({ onChange }: SectionProps) {
         <div className="toggle-list">
           <Toggle label="本日の参拝予定の朝の通知" desc="毎朝、その日のお参り予定をまとめてお知らせします。" checked={s.todayVisits} onChange={(v) => set({ todayVisits: v })} />
           <Toggle label="年忌法要の事前リマインド" desc="該当する年忌の60日前にお知らせします。" checked={s.upcomingKaiki} onChange={(v) => set({ upcomingKaiki: v })} />
-          <Toggle label="檀家からの返答通知" desc="LINE案内に出欠連絡があった際に通知します。" checked={s.responseAlert} onChange={(v) => set({ responseAlert: v })} />
+          <Toggle label="檀家からの返答通知" desc="案内に出欠のご返答があった際に通知します。" checked={s.responseAlert} onChange={(v) => set({ responseAlert: v })} />
           <Toggle label="週次レポート" desc="毎週月曜日に先週の活動サマリをメール送信します。" checked={s.weeklyReport} onChange={(v) => set({ weeklyReport: v })} />
         </div>
 

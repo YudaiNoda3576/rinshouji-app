@@ -37,24 +37,6 @@ export interface TempleInfo {
   web: string;
 }
 
-// 法要種別の行。数値項目は編集により文字列化されうる。
-export interface ServiceRow {
-  name: string;
-  fuse: string;
-  duration: string | number;
-  slot: string | number;
-}
-
-// 案内テンプレートのチャンネル。
-export type TemplateChannel = 'mail' | 'line';
-
-// 案内テンプレート。
-export interface TemplateItem {
-  id: string;
-  name: string;
-  channel: TemplateChannel;
-}
-
 // 寺務員の権限。
 export type StaffPerm = 'admin' | 'staff' | 'readonly';
 
@@ -78,7 +60,7 @@ export interface StaffRoleInfo {
 export type IntegrationStatus = 'connected' | 'off';
 
 // 外部連携アイコンの種別。
-export type IntegrationIcon = 'line' | 'mail' | 'map' | 'cal';
+export type IntegrationIcon = 'mail' | 'map' | 'cal';
 
 // 通知設定。
 export interface NotificationSettings {

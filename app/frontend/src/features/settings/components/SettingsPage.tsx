@@ -2,7 +2,6 @@
 import * as React from 'react';
 
 import { SETTINGS_NAV, SVC_ICON } from '../constants';
-import { SectionData } from './sections/SectionData';
 import { SectionIntegration } from './sections/SectionIntegration';
 import { SectionKinds } from './sections/SectionKinds';
 import { SectionNotifications } from './sections/SectionNotifications';
@@ -10,16 +9,21 @@ import { SectionSecurity } from './sections/SectionSecurity';
 import { SectionServices } from './sections/SectionServices';
 import { SectionStaff } from './sections/SectionStaff';
 import { SectionTemple } from './sections/SectionTemple';
-import { SectionTemplates } from './sections/SectionTemplates';
 
 interface SettingsPageProps {
   initialSection: string;
 }
 
+// SETTINGS_NAV に存在しないキー（廃止されたセクションなど）が渡された場合は先頭項目へフォールバックする。
+function resolveSection(key: string): string {
+  const exists = SETTINGS_NAV.some((n) => n.key === key);
+  return exists ? key : SETTINGS_NAV[0].key;
+}
+
 export function SettingsPage({ initialSection }: SettingsPageProps) {
-  const [section, setSection] = React.useState(initialSection || 'temple');
+  const [section, setSection] = React.useState(resolveSection(initialSection || 'temple'));
   const [dirty, setDirty] = React.useState(false);
-  React.useEffect(() => { if (initialSection) setSection(initialSection); }, [initialSection]);
+  React.useEffect(() => { if (initialSection) setSection(resolveSection(initialSection)); }, [initialSection]);
 
   return (
     <div className="page-shell settings-page">
@@ -54,11 +58,9 @@ export function SettingsPage({ initialSection }: SettingsPageProps) {
           {section === 'temple'        && <SectionTemple onChange={() => setDirty(true)} />}
           {section === 'services'      && <SectionServices onChange={() => setDirty(true)} />}
           {section === 'kinds'         && <SectionKinds onChange={() => setDirty(true)} />}
-          {section === 'templates'     && <SectionTemplates onChange={() => setDirty(true)} />}
           {section === 'staff'         && <SectionStaff onChange={() => setDirty(true)} />}
           {section === 'integration'   && <SectionIntegration onChange={() => setDirty(true)} />}
           {section === 'notifications' && <SectionNotifications onChange={() => setDirty(true)} />}
-          {section === 'data'          && <SectionData />}
           {section === 'security'      && <SectionSecurity onChange={() => setDirty(true)} />}
         </div>
       </div>
