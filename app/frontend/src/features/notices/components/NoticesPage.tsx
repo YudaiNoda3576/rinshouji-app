@@ -1,12 +1,18 @@
 import * as React from 'react';
 
+import type { PushToast } from '@/types/toast';
+
 import { NOTICE_CASES, NOTICE_STATUS, TODAY } from '../constants';
 import type { NoticeGroupBy, NoticePeriod, NoticeStatusFilter } from '../types';
 import { daysUntil, fmtDate, fmtMonth } from '../utils';
 import { NoticeDetail } from './NoticeDetail';
 import { SendNoticesDialog } from './SendNoticesDialog';
 
-export function NoticesPage() {
+interface NoticesPageProps {
+  onToast?: PushToast;
+}
+
+export function NoticesPage(_props: NoticesPageProps) {
   const [period, setPeriod] = React.useState<NoticePeriod>('1y'); // 1y / 6m / next3m
   const [statusFilter, setStatusFilter] = React.useState<NoticeStatusFilter>('all');
   const [groupBy, setGroupBy] = React.useState<NoticeGroupBy>('month'); // month / family / status

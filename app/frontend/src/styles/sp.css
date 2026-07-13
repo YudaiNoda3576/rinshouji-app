@@ -102,7 +102,7 @@
    Tool bars (search + filters)
    ============================================================ */
 @media (max-width: 640px) {
-  .visits-tools, .memorial-tools, .notice-toolbar, .parish-tools {
+  .memorial-tools, .notice-toolbar, .parish-tools {
     flex-direction: column; align-items: stretch; gap: 10px;
     padding: 10px 12px;
   }
@@ -111,27 +111,7 @@
   .cg-track { flex-wrap: wrap; }
   .nt-group, .mt-filter { width: 100%; justify-content: space-between; }
   .nt-group .seg, .nt-group select, .mt-filter select { flex: 1; max-width: 220px; }
-  .visits-tools .count, .mt-count { margin-left: 0; align-self: flex-end; }
-}
-
-/* ============================================================
-   VISITS — list/detail stacking
-   ============================================================ */
-@media (max-width: 640px) {
-  .visits-body { grid-template-columns: 1fr !important; }
-  .visit-detail { position: static; }
-  .vt-head { display: none !important; }
-  .vt-row {
-    grid-template-columns: 1fr !important;
-    gap: 4px !important; padding: 12px 14px;
-  }
-  .vt-row .c-date { display: flex; align-items: center; gap: 8px; }
-  .vt-row .c-date .d-main { font-weight: 600; }
-  .vt-row .c-date .d-sub { color: var(--fg2); font-size: 12px; }
-  .vt-row .c-who .w-name { font-size: 14px; }
-  .vt-row .c-kind, .vt-row .c-status, .vt-row .c-amt { display: inline-flex; align-items: center; }
-  .vt-row .c-h { display: none !important; }
-  .vt-row .c-status, .vt-row .c-amt { font-size: 12px; color: var(--fg2); }
+  .mt-count { margin-left: 0; align-self: flex-end; }
 }
 
 /* ============================================================
@@ -377,7 +357,7 @@
    Detail panel headers/footers — uniform padding
    ============================================================ */
 @media (max-width: 640px) {
-  .visit-detail header, .parish-detail header, .memorial-detail .md-head,
+  .parish-detail header, .memorial-detail .md-head,
   .schedule-detail > header, .notice-detail > header, .pmap-detail .pmd-head {
     padding: 14px 16px !important;
   }

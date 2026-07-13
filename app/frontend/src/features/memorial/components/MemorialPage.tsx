@@ -2,12 +2,15 @@
 
 import * as React from 'react';
 
+import type { PushToast } from '@/types/toast';
+
 import { MEMORIAL_ENTRIES } from '../constants';
 import { fmtJpDateShort, toEra, yearsUntil } from '../utils';
 import { MemorialDetail } from './MemorialDetail';
 
 interface MemorialPageProps {
   onOpenNew: () => void;
+  onToast?: PushToast;
 }
 
 export function MemorialPage({ onOpenNew }: MemorialPageProps) {

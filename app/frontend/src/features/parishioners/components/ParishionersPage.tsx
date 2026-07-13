@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import { TEMPLE_SECTS } from '@/constants/temple';
+import type { PushToast } from '@/types/toast';
 
 import { ChipGroup } from '@/components/ui/ChipGroup';
 
@@ -11,6 +12,7 @@ import { TableView } from './TableView';
 
 interface ParishionersPageProps {
   onOpenNew: () => void;
+  onToast?: PushToast;
 }
 
 export function ParishionersPage({ onOpenNew }: ParishionersPageProps) {
