@@ -30,7 +30,7 @@ export function SettingsPage({ initialSection }: SettingsPageProps) {
       <div className="page-head">
         <div>
           <h1>設定</h1>
-          <p>寺院情報や案内テンプレート、寺務員の権限などをご管理いただけます。</p>
+          <p>寺院情報や法要の設定、寺務員の権限などをご管理いただけます。</p>
         </div>
         <div className="head-actions">
           {dirty && <span className="dirty-pill"><span className="dirty-dot"></span>未保存の変更があります</span>}

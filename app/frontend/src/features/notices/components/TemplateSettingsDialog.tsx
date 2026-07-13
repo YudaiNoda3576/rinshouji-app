@@ -11,15 +11,10 @@ interface TemplateSettingsDialogProps {
 }
 
 const TEMPLATES: NoticeTemplate[] = [
-  { id: 'kaiki-letter', name: '年忌案内 (封書)' },
-  { id: 'obon',         name: 'お盆参拝のご案内' },
-  { id: 'higan',        name: 'お彼岸参拝のご案内' },
-  { id: 'shotsuki',     name: '月命日リマインダー' },
-];
-
-const VARS = ['{{戸主名}}', '{{戒名}}', '{{俗名}}', '{{法要日}}', '{{年忌}}', '{{寺院名}}', '{{住職名}}', '{{家名}}', '{{住所}}'];
-
-const DEFAULT_BODY = `{{戸主名}} 様
+  {
+    id: 'kaiki-letter',
+    name: '年忌案内 (封書)',
+    body: `{{戸主名}} 様
 
 時下ますます御清祥のこととお慶び申し上げます。
 
@@ -33,12 +28,69 @@ const DEFAULT_BODY = `{{戸主名}} 様
 御布施：お志
 会食：法要後、本院にてお膳を用意いたします
 
-合掌 {{寺院名}} 住職`;
+合掌 {{寺院名}} 住職`,
+  },
+  {
+    id: 'obon',
+    name: 'お盆参拝のご案内',
+    body: `{{戸主名}} 様
+
+盛夏の候、ますます御清祥のこととお慶び申し上げます。
+
+本年もお盆の合同法要を当山にて厳修いたします。
+ご先祖様への御回向に、ぜひご家族おそろいでお参りください。
+
+日時：8月13日〜15日 午前10時より
+場所：当山 本堂
+
+合掌 {{寺院名}} 住職`,
+  },
+  {
+    id: 'higan',
+    name: 'お彼岸参拝のご案内',
+    body: `{{戸主名}} 様
+
+彼岸の候、ますます御清祥のこととお慶び申し上げます。
+
+お彼岸の合同法要を当山にて厳修いたします。
+ご先祖様への御回向に、どうぞお参りください。
+
+日時：彼岸の中日 午前10時より
+場所：当山 本堂
+
+合掌 {{寺院名}} 住職`,
+  },
+  {
+    id: 'shotsuki',
+    name: '月命日リマインダー',
+    body: `{{戸主名}} 様
+
+{{法要日}} は 故 {{戒名}}（{{俗名}}）様の月命日でございます。
+お参りをご希望の際は、お気軽にお申し付けください。
+
+{{寺院名}}`,
+  },
+];
+
+const VARS = ['{{戸主名}}', '{{戒名}}', '{{俗名}}', '{{法要日}}', '{{年忌}}', '{{寺院名}}', '{{住職名}}', '{{家名}}', '{{住所}}'];
 
 export function TemplateSettingsDialog({ open, onClose, onSave }: TemplateSettingsDialogProps) {
-  const [active, setActive] = React.useState('kaiki-letter');
-  const [body, setBody] = React.useState(DEFAULT_BODY);
+  const [active, setActive] = React.useState(TEMPLATES[0].id);
+  const [body, setBody] = React.useState(TEMPLATES[0].body);
   const cur = TEMPLATES.find(t => t.id === active) ?? TEMPLATES[0];
+
+  // 再オープン時は先頭テンプレ・初期本文にリセット（他ダイアログと同じ open 依存の規約）。
+  React.useEffect(() => {
+    if (open) {
+      setActive(TEMPLATES[0].id);
+      setBody(TEMPLATES[0].body);
+    }
+  }, [open]);
+
+  const selectTemplate = (t: NoticeTemplate) => {
+    setActive(t.id);
+    setBody(t.body);
+  };
 
   if (!open) return null;
 
@@ -60,7 +112,7 @@ export function TemplateSettingsDialog({ open, onClose, onSave }: TemplateSettin
           <div className="tpl-layout">
             <div className="tpl-list">
               {TEMPLATES.map(t => (
-                <button key={t.id} className={'tpl-row' + (active === t.id ? ' on' : '')} onClick={() => setActive(t.id)}>
+                <button key={t.id} className={'tpl-row' + (active === t.id ? ' on' : '')} onClick={() => selectTemplate(t)}>
                   <span className="tpl-name">{t.name}</span>
                 </button>
               ))}

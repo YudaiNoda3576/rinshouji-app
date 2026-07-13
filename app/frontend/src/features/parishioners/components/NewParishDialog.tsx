@@ -28,7 +28,7 @@ export function NewParishDialog({ open, initial, onClose, onSave, onDelete }: Ne
   };
   return (
     <div className="dialog-overlay" onClick={onClose}>
-      <div className="dialog" style={{ width: 620 }} onClick={(e) => e.stopPropagation()}>
+      <div className="dialog" style={{ width: 620 }} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3>{isEdit ? '檀家情報を編集' : '新規檀家登録'}</h3>
           <button className="x-btn" onClick={onClose}>

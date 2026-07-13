@@ -10,6 +10,7 @@ export type NoticeChannel = 'mail';
 export interface NoticeTemplate {
   id: string;
   name: string;
+  body: string;
 }
 
 export interface NoticeKaiki {
