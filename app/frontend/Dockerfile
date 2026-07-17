@@ -5,6 +5,9 @@
 FROM node:24-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json* ./
+# TLS 傍受環境向け（開発専用）。詳細は app/backend/Dockerfile のコメント参照。
+ARG NPM_STRICT_SSL=true
+ENV npm_config_strict_ssl=$NPM_STRICT_SSL
 RUN npm install --no-audit --no-fund
 COPY . .
 RUN npm run build

@@ -41,6 +41,9 @@ services:
   backend:
     build:
       context: ./app/backend
+      args:
+        # TLS 傍受環境向け（開発専用）。詳細は app/backend/Dockerfile のコメント参照。
+        NPM_STRICT_SSL: "false"
     container_name: rinshouji-backend
     restart: unless-stopped
     environment:
@@ -55,6 +58,12 @@ services:
       - ./app/backend:/app
       # node_modules はコンテナ内のものを優先し、ホストで上書きしない。
       - backend-node-modules:/app/node_modules
+    # named volume がイメージ内の node_modules を隠すため、依存を追加した際に
+    # 古いボリュームのままだと ERR_MODULE_NOT_FOUND になる。起動時に lockfile と
+    # 同期してから dev サーバを立ち上げる（同期済みなら数秒で抜ける）。
+    command: >
+      sh -c "npm install --no-audit --no-fund;
+             npm run dev"
     depends_on:
       db:
         condition: service_healthy
@@ -62,6 +71,9 @@ services:
   frontend:
     build:
       context: ./app/frontend
+      args:
+        # TLS 傍受環境向け（開発専用）。詳細は app/backend/Dockerfile のコメント参照。
+        NPM_STRICT_SSL: "false"
     container_name: rinshouji-frontend
     restart: unless-stopped
     ports:
