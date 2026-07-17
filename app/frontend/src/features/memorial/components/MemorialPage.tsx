@@ -11,7 +11,6 @@ import { MemorialDetail } from './MemorialDetail';
 import { NewMemorialDialog } from './NewMemorialDialog';
 
 interface MemorialPageProps {
-  onOpenNew: () => void;
   onToast?: PushToast;
 }
 
@@ -30,11 +29,12 @@ function toNewMemorialForm(entry: MemorialEntry): NewMemorialForm {
   };
 }
 
-export function MemorialPage({ onOpenNew, onToast }: MemorialPageProps) {
+export function MemorialPage({ onToast }: MemorialPageProps) {
   const [q, setQ] = React.useState('');
   const [familyFilter, setFamilyFilter] = React.useState('all');
   const [sort, setSort] = React.useState('upcoming'); // upcoming | recent | name
   const [selectedId, setSelectedId] = React.useState(MEMORIAL_ENTRIES[0].id);
+  const [newOpen, setNewOpen] = React.useState(false);
   const [editOpen, setEditOpen] = React.useState(false);
 
   const families = React.useMemo(() => {
@@ -94,7 +94,7 @@ export function MemorialPage({ onOpenNew, onToast }: MemorialPageProps) {
           <p>戒名と年忌の記録を管理します。</p>
         </div>
         <div className="head-actions">
-          <button className="btn primary purple" type="button" onClick={onOpenNew}>
+          <button className="btn primary purple" type="button" onClick={() => setNewOpen(true)}>
             <svg viewBox="0 0 24 24"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
             新規登録
           </button>
@@ -207,6 +207,15 @@ export function MemorialPage({ onOpenNew, onToast }: MemorialPageProps) {
 
         <MemorialDetail entry={selected} onEdit={() => setEditOpen(true)} />
       </div>
+
+      <NewMemorialDialog
+        open={newOpen}
+        onClose={() => setNewOpen(false)}
+        onSave={(form) => {
+          setNewOpen(false);
+          onToast?.({ kind: 'success', title: '過去帳に登録しました。', desc: (form.prefix + ' ' + form.name + ' ' + form.rank).trim() + ' / ' + form.secular });
+        }}
+      />
 
       <NewMemorialDialog
         open={editOpen}

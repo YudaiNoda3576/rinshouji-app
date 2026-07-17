@@ -5,8 +5,8 @@ import { BrandIcon } from '@/components/icons';
 import type { PushToast } from '@/types/toast';
 
 import { DashboardHome } from '@/features/dashboard';
-import { ParishionersPage, NewParishDialog } from '@/features/parishioners';
-import { MemorialPage, NewMemorialDialog } from '@/features/memorial';
+import { ParishionersPage } from '@/features/parishioners';
+import { MemorialPage } from '@/features/memorial';
 import { SchedulePage, NewScheduleDialog } from '@/features/schedule';
 import { NoticesPage } from '@/features/notices';
 import { ParishMapPage } from '@/features/parish-map';
@@ -58,8 +58,6 @@ const PAGE_TITLES: Record<PageKey, string> = {
 
 export function Dashboard({ onLogout, onToast }: DashboardProps) {
   const [page, setPage] = React.useState<PageKey>('home');
-  const [showNewParish, setShowNewParish] = React.useState(false);
-  const [showNewMemorial, setShowNewMemorial] = React.useState(false);
   const [showNewSchedule, setShowNewSchedule] = React.useState(false);
   const [settingsInitialSection, setSettingsInitialSection] = React.useState('temple');
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
@@ -132,29 +130,9 @@ export function Dashboard({ onLogout, onToast }: DashboardProps) {
 
       <main className="dash-main">
         {page === 'parish' ? (
-          <>
-            <ParishionersPage onOpenNew={() => setShowNewParish(true)} onToast={onToast} />
-            <NewParishDialog
-              open={showNewParish}
-              onClose={() => setShowNewParish(false)}
-              onSave={(form) => {
-                setShowNewParish(false);
-                onToast({ kind: 'success', title: '檀家を登録しました。', desc: form.name + '家 / ' + form.head });
-              }}
-            />
-          </>
+          <ParishionersPage onToast={onToast} />
         ) : page === 'memorial' ? (
-          <>
-            <MemorialPage onOpenNew={() => setShowNewMemorial(true)} onToast={onToast} />
-            <NewMemorialDialog
-              open={showNewMemorial}
-              onClose={() => setShowNewMemorial(false)}
-              onSave={(form) => {
-                setShowNewMemorial(false);
-                onToast({ kind: 'success', title: '過去帳に登録しました。', desc: (form.prefix + ' ' + form.name + ' ' + form.rank).trim() + ' / ' + form.secular });
-              }}
-            />
-          </>
+          <MemorialPage onToast={onToast} />
         ) : page === 'schedule' ? (
           <>
             <SchedulePage onOpenNew={() => setShowNewSchedule(true)} onOpenSettings={openSettingsAt} />

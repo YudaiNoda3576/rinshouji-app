@@ -13,7 +13,6 @@ import { ParishDetail } from './ParishDetail';
 import { TableView } from './TableView';
 
 interface ParishionersPageProps {
-  onOpenNew: () => void;
   onToast?: PushToast;
 }
 
@@ -30,11 +29,12 @@ function toNewParishForm(f: ParishFamily): NewParishForm {
   };
 }
 
-export function ParishionersPage({ onOpenNew, onToast }: ParishionersPageProps) {
+export function ParishionersPage({ onToast }: ParishionersPageProps) {
   const all = PARISH_FAMILIES;
   const [q, setQ] = React.useState('');
   const [sortKey, setSortKey] = React.useState('lastVisit');
   const [selectedId, setSelectedId] = React.useState(all[0].id);
+  const [newOpen, setNewOpen] = React.useState(false);
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
 
@@ -59,7 +59,7 @@ export function ParishionersPage({ onOpenNew, onToast }: ParishionersPageProps) 
           <p>檀家家別の情報、家族構成、過去帳、お参り履歴を管理します。</p>
         </div>
         <div className="head-actions">
-          <button className="btn primary" onClick={onOpenNew}>
+          <button className="btn primary" onClick={() => setNewOpen(true)}>
             <svg viewBox="0 0 24 24"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
             新規檀家登録
           </button>
@@ -90,6 +90,15 @@ export function ParishionersPage({ onOpenNew, onToast }: ParishionersPageProps) 
           {selected && <ParishDetail f={selected} members={members} onEdit={() => setEditOpen(true)} />}
         </aside>
       </div>
+
+      <NewParishDialog
+        open={newOpen}
+        onClose={() => setNewOpen(false)}
+        onSave={(form) => {
+          setNewOpen(false);
+          onToast?.({ kind: 'success', title: '檀家を登録しました。', desc: form.name + '家 / ' + form.head });
+        }}
+      />
 
       <NewParishDialog
         open={editOpen}
