@@ -1,49 +1,98 @@
-// parishioners（檀家管理）のサンプルデータ・定数・整形ヘルパー。
+// parishioners（檀家管理）の選択肢・整形ヘルパー。
 
-import type { Member, ParishFamily } from './types';
+import type { PillColor } from '@/components/ui/Pill';
 
-export const RELATIONS = ['戸主', '妻', '長男', '長女', '次男', '母', '父', '祖母', '祖父', '養子'];
-export const KAMON = ['五三桐', '左三巴', '丸に橘', '下り藤', '丸に梅鉢', '違い鷹の羽', '九曜', '蔦', '花菱', '井桁'];
-export const ZONES = ['本堂裏', '東墓地', '西墓地', '旧墓地', '新区画'];
+import type { CemeteryPlot, DeceasedRow, District, HouseholdForm } from './types';
 
-export const PARISH_FAMILIES: ParishFamily[] = [
-  { id: 'F-0124', name: '佐藤', head: '佐藤 一彦', members: 5, lastVisit: '2026-05-11', joined: 1972, addr: '東京都品川区南品川3-12-4', phone: '03-3458-XXXX', sect: 0, kamon: 0, zone: 0, ancestors: 6, scheduled: '七回忌 (2026-06-18)' },
-  { id: 'F-0118', name: '田中', head: '田中 修', members: 3, lastVisit: '2026-04-22', joined: 1965, addr: '東京都品川区北品川1-8-2', phone: '03-3471-XXXX', sect: 0, kamon: 1, zone: 1, ancestors: 4, scheduled: '十三回忌 (2026-05-22)' },
-  { id: 'F-0131', name: '高橋', head: '高橋 義信', members: 4, lastVisit: '2026-05-08', joined: 1984, addr: '東京都品川区東大井2-3-15', phone: '03-3762-XXXX', sect: 1, kamon: 2, zone: 0, ancestors: 8, scheduled: '三十三回忌 (2026-05-29)' },
-  { id: 'F-0140', name: '山本', head: '山本 道夫', members: 6, lastVisit: '2026-05-04', joined: 1958, addr: '東京都品川区西大井1-1-1', phone: '03-3777-XXXX', sect: 1, kamon: 3, zone: 2, ancestors: 11, scheduled: null },
-  { id: 'F-0152', name: '鈴木', head: '鈴木 健一', members: 4, lastVisit: '2026-03-30', joined: 1991, addr: '東京都品川区荏原2-8-9', phone: '03-3782-XXXX', sect: 2, kamon: 4, zone: 1, ancestors: 3, scheduled: null },
-  { id: 'F-0165', name: '伊藤', head: '伊藤 京子', members: 2, lastVisit: '2026-02-18', joined: 2003, addr: '東京都品川区戸越4-15-1', phone: '03-3792-XXXX', sect: 0, kamon: 5, zone: 3, ancestors: 5, scheduled: '一周忌 (2026-08-04)' },
-  { id: 'F-0170', name: '渡辺', head: '渡辺 静江', members: 3, lastVisit: '2025-12-23', joined: 1948, addr: '東京都品川区平塚1-2-3', phone: '03-3781-XXXX', sect: 1, kamon: 6, zone: 0, ancestors: 14, scheduled: null },
-  { id: 'F-0182', name: '中村', head: '中村 純一', members: 5, lastVisit: '2026-04-30', joined: 1977, addr: '東京都品川区豊町3-4-5', phone: '03-3781-XXXX', sect: 0, kamon: 7, zone: 4, ancestors: 7, scheduled: '七回忌 (2026-09-02)' },
-  { id: 'F-0193', name: '小林', head: '小林 麗子', members: 4, lastVisit: '2026-03-12', joined: 1988, addr: '東京都品川区中延5-1-22', phone: '03-3783-XXXX', sect: 2, kamon: 8, zone: 1, ancestors: 6, scheduled: null },
-  { id: 'F-0201', name: '加藤', head: '加藤 信吾', members: 3, lastVisit: '2026-05-09', joined: 2010, addr: '東京都品川区旗の台2-6-7', phone: '03-3786-XXXX', sect: 3, kamon: 9, zone: 4, ancestors: 2, scheduled: null },
-  { id: 'F-0215', name: '吉田', head: '吉田 とき子', members: 2, lastVisit: '2026-04-12', joined: 1960, addr: '東京都品川区小山3-9-1', phone: '03-3781-XXXX', sect: 0, kamon: 0, zone: 0, ancestors: 9, scheduled: '十七回忌 (2026-07-11)' },
-  { id: 'F-0228', name: '山田', head: '山田 健作', members: 5, lastVisit: '2026-04-25', joined: 1973, addr: '東京都品川区西品川1-1-1', phone: '03-3450-XXXX', sect: 4, kamon: 1, zone: 2, ancestors: 8, scheduled: null },
-];
+// households の enum に対応する選択肢（テーブル定義書の CHECK 制約準拠）。
+export const RELATION_TYPES = ['檀家', '信徒', '檀徒', '他寺', 'その他'] as const;
+export const HANNYA_OPTIONS = ['組', '郵送', 'なし'] as const;
+export const SEJIKI_OPTIONS = ['組', '郵送', 'なし', '不要'] as const;
+export const IHAI_OPTIONS = ['あり', 'なし'] as const;
 
-export function buildMembers(seedName: string): Member[] {
-  return [
-    { name: seedName + ' 一彦', relation: '戸主', age: 62, deceased: false, status: 'active' },
-    { name: seedName + ' 千恵子', relation: '妻', age: 58, deceased: false, status: 'active' },
-    { name: seedName + ' 拓也', relation: '長男', age: 32, deceased: false, status: 'active' },
-    { name: seedName + ' 美咲', relation: '長女', age: 28, deceased: false, status: 'active' },
-    { name: seedName + ' 文蔵', relation: '父', age: null, deceased: true, kaimyo: '釈 浄信 信士', date: '2019-06-18' },
-    { name: seedName + ' 千鶴', relation: '母', age: null, deceased: true, kaimyo: '釈尼 妙心 大姉', date: '2013-05-22' },
-  ].slice(0, 6);
-}
-
-export const daysAgo = (iso: string): number => {
-  const t = new Date(2026, 4, 11);
-  const d = new Date(iso);
-  return Math.round((t.getTime() - d.getTime()) / (24 * 3600 * 1000));
+// フォームの初期値（新規登録）。
+export const EMPTY_HOUSEHOLD_FORM: HouseholdForm = {
+  familyName: '',
+  headName: '',
+  headKana: '',
+  districtId: null,
+  relationType: '',
+  status: 'active',
+  postalCode: '',
+  address1: '',
+  address2: '',
+  phone: '',
+  mobilePhone: '',
+  hannyaService: '',
+  sejikiService: '',
+  tanagyoSchedule: '',
+  monthlyServiceDay: '',
+  jizoFlag: false,
+  ihaiStatus: '',
+  note: '',
 };
 
-export const fmtRelativeDate = (iso: string): string => {
-  const days = daysAgo(iso);
-  if (days <= 0) return '本日';
-  if (days === 1) return '昨日';
-  if (days < 7) return days + '日前';
-  if (days < 30) return Math.floor(days / 7) + '週間前';
-  if (days < 365) return Math.floor(days / 30) + 'ヶ月前';
-  return Math.floor(days / 365) + '年以上前';
+// 家名表示（末尾に「家」を付与。未設定は「(家名未設定)」）。
+export const formatFamilyName = (name: string | null): string =>
+  name && name.trim() !== '' ? `${name}家` : '(家名未設定)';
+
+// 戸主名表示（未設定は「(戸主未設定)」）。
+export const formatHeadName = (name: string | null): string =>
+  name && name.trim() !== '' ? name : '(戸主未設定)';
+
+// 地区表示（「区分1 / 区分2」。両方欠落は「地区未設定」）。
+export const formatDistrict = (d1: string | null, d2: string | null): string => {
+  if (d1 && d2) return `${d1} / ${d2}`;
+  if (d1) return d1;
+  if (d2) return d2;
+  return '地区未設定';
 };
+
+// 電話表示（固定電話優先。どちらも欠落は「—」）。
+export const formatPhone = (phone: string | null, mobile: string | null): string =>
+  phone && phone.trim() !== '' ? phone : mobile && mobile.trim() !== '' ? mobile : '—';
+
+// 関係区分バッジの配色。
+export const relationPillColor = (rel: string | null): PillColor => {
+  switch (rel) {
+    case '檀家':
+      return 'blue';
+    case '信徒':
+      return 'green';
+    case '檀徒':
+      return 'purple';
+    default:
+      return 'gray';
+  }
+};
+
+// 過去帳の没年月日表示（画面項目定義 §4.2 の不完全日付規則を簡略適用）。
+export const formatDeathDate = (d: DeceasedRow): string => {
+  if (d.deathYear == null) return '不詳';
+  if (d.deathMonth == null) return `${d.deathYear}年（月日不詳）`;
+  if (d.deathDay == null) return `${d.deathYear}年${d.deathMonth}月（日不詳）`;
+  return `${d.deathYear}年${d.deathMonth}月${d.deathDay}日`;
+};
+
+// 墓地区画の幅表示（cm）。
+export const formatWidth = (w: number | null): string => (w == null ? '—' : `${w}cm`);
+
+// 墓地代表示（円区切り）。
+export const formatFee = (fee: number | null): string =>
+  fee == null ? '—' : `${fee.toLocaleString('ja-JP')}円`;
+
+// 入金日表示（完全な日付が無ければ原文フォールバック）。
+export const formatPaidOn = (plot: CemeteryPlot): string =>
+  plot.paidOn ?? plot.paidOnRaw ?? '—';
+
+// 〒住所の整形（郵便番号 + 住所1 / 住所2）。
+export const formatPostal = (postalCode: string | null): string =>
+  postalCode && postalCode.trim() !== '' ? `〒${postalCode}` : '';
+
+// districts から区分1（level=1）の一覧を返す。
+export const level1Districts = (districts: District[]): District[] =>
+  districts.filter(d => d.level === 1);
+
+// districts から指定した区分1 に属する区分2（level=2）の一覧を返す。
+export const level2Districts = (districts: District[], parentId: number | null): District[] =>
+  parentId == null ? [] : districts.filter(d => d.level === 2 && d.parentId === parentId);

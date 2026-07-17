@@ -14,6 +14,15 @@ function readPort(): number {
   return parsed;
 }
 
+function readDatabaseUrl(): string {
+  const raw = process.env.DATABASE_URL;
+  if (raw === undefined || raw === "") {
+    throw new Error("環境変数 DATABASE_URL が未設定です");
+  }
+  return raw;
+}
+
 export const env = {
   port: readPort(),
+  databaseUrl: readDatabaseUrl(),
 } as const;

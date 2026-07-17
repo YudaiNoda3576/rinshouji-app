@@ -1,3 +1,3 @@
 export { MemorialPage } from './components/MemorialPage';
 export { NewMemorialDialog } from './components/NewMemorialDialog';
-export type { NewMemorialForm } from './types';
+export type { DeceasedDetail, DeceasedForm, DeceasedListItem } from './types';

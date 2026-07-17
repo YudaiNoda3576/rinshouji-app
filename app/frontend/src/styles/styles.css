@@ -862,6 +862,39 @@ a { color: inherit; }
   color: var(--fg1); margin-top: 8px;
 }
 
+/* Memorial: loading / error states (list & detail) */
+.memorial-error { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.memorial-error p { margin: 0; color: var(--fg2); }
+.memorial-form-error {
+  margin-bottom: 14px; padding: 10px 12px; border-radius: 6px;
+  background: color-mix(in oklab, var(--temple-red, #DC2626) 10%, white);
+  border: 1px solid color-mix(in oklab, var(--temple-red, #DC2626) 35%, var(--border-default));
+  color: var(--temple-red, #DC2626); font-size: 13px;
+}
+
+/* Memorial detail: 戒名表記注意アイコン + インライン注記 */
+.md-kaimyo-row { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.md-note-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; padding: 0; border: 0; background: none; cursor: pointer;
+  color: var(--temple-purple);
+}
+.md-note-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
+.md-note-inline {
+  margin-top: 8px; padding: 8px 10px; border-radius: 6px; font-size: 12px;
+  background: var(--temple-purple-tint); color: #4C1D95; text-align: left;
+}
+.md-secular-kana { color: var(--fg2); margin-left: 2px; }
+.md-legacy-note { color: var(--fg2); font-size: 12px; }
+.md-next-summary { margin-top: 10px; font-size: 12px; color: var(--fg2); }
+
+/* Memorial dialog: 関連檀家モード切り替え・補助テキスト */
+.mdlg-household-mode { display: flex; gap: 16px; align-items: center; padding-top: 4px; }
+.mdlg-radio { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--fg1); cursor: pointer; }
+.mdlg-radio input { width: 15px; height: 15px; }
+.mdlg-hint { font-size: 11px; color: var(--fg2); font-weight: 400; margin-left: 6px; }
+.mdlg-hint-error { color: var(--temple-red, #DC2626); margin-left: 0; margin-top: 4px; }
+
 /* Responsive */
 @media (max-width: 1280px) {
   .memorial-stats { grid-template-columns: repeat(2, 1fr); }
@@ -1198,7 +1231,7 @@ a { color: inherit; }
 .parish-table { overflow: hidden; }
 .ptbl-head, .ptbl-row {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 80px 1.1fr 80px 1.2fr;
+  grid-template-columns: 1.3fr 1fr 1.2fr 84px 1fr 74px 1fr;
   gap: 14px; padding: 12px 18px; align-items: center;
 }
 .ptbl-head {
@@ -1216,9 +1249,9 @@ a { color: inherit; }
 .ptbl-row .c-name > div { min-width: 0; flex: 1; }
 .ptbl-row .t1 { font-weight: 600; color: var(--fg1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ptbl-row .t2 { font-size: 11px; color: var(--fg2); margin-top: 2px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.ptbl-row .c-mem b { font-variant-numeric: tabular-nums; font-weight: 600; }
-.ptbl-row .c-mem span { font-size: 11px; color: var(--fg2); margin-left: 2px; }
-.schedule-chip { display: inline-flex; padding: 3px 9px; font-size: 11px; font-weight: 600; border-radius: 9999px; background: var(--temple-purple-tint); color: #4C1D95; }
+.ptbl-row .c-anc b { font-variant-numeric: tabular-nums; font-weight: 600; }
+.ptbl-row .c-anc span { font-size: 11px; color: var(--fg2); margin-left: 2px; }
+.ptbl-row .c-dist, .ptbl-row .c-tel { color: var(--fg1); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dim { color: var(--fg2); }
 
 /* Card grid variant */
@@ -1301,24 +1334,77 @@ a { color: inherit; }
 .member-row.deceased .m-name { color: var(--temple-purple); }
 .m-dec-mark { font-size: 10px; padding: 1px 6px; border-radius: 9999px; background: var(--temple-purple-tint); color: #4C1D95; font-weight: 600; }
 
+/* Parish — API 接続版の追加スタイル */
+.parish-detail h3 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pd-status { font-size: 11px; }
+.pd-kana { color: var(--fg2); font-size: 12px; margin-left: 4px; }
+.pd-warning {
+  width: 100%; margin-top: 6px; padding: 8px 12px; border-radius: 6px;
+  background: var(--temple-red-tint); color: #7F1D1D; font-size: 12px; font-weight: 600;
+}
+.pd-empty { font-size: 12px; color: var(--fg2); padding: 4px 0 8px; }
+
+.plot-list { display: flex; flex-direction: column; gap: 8px; }
+.plot-card {
+  border: 1px solid var(--border-default); border-radius: 8px; padding: 10px 12px;
+  background: hsl(210 11% 99%);
+}
+.plot-code {
+  font-size: 13px; font-weight: 600; color: var(--fg1);
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+.plot-meta {
+  display: grid; grid-template-columns: auto 1fr; gap: 3px 10px;
+  font-size: 12px; align-items: baseline;
+}
+.plot-meta span { color: var(--fg2); }
+.plot-meta b { color: var(--fg1); font-weight: 500; font-variant-numeric: tabular-nums; }
+.plot-note { font-size: 12px; color: var(--fg2); margin-top: 6px; }
+
+.deceased-list { display: flex; flex-direction: column; gap: 0; }
+.deceased-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  width: 100%; padding: 8px 0; border: 0; border-bottom: 1px solid hsl(215 28% 95%);
+  background: none; font-family: inherit; text-align: left; cursor: pointer;
+}
+.deceased-row:last-child { border-bottom: 0; }
+.deceased-row:hover .dc-kaimyo { color: var(--temple-purple); }
+.dc-kaimyo { font-size: 13px; font-weight: 500; color: var(--fg1); }
+.dc-date { font-size: 11px; color: var(--fg2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.parish-filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.parish-filters .input-plain { height: 34px; padding: 0 10px; font-size: 13px; min-width: 130px; }
+.check-label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--fg1); cursor: pointer; }
+.check-label input { width: 15px; height: 15px; }
+.parish-incl { white-space: nowrap; }
+.parish-check { justify-content: center; }
+.form-field .req { color: var(--temple-red, #DC2626); }
+.parish-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; padding: 40px 20px; text-align: center;
+  font-size: 13px; color: var(--fg2);
+}
+.parish-state p { margin: 0; }
+
 @media (max-width: 1280px) {
   .parish-body { grid-template-columns: 1fr; }
   .parish-detail { position: static; }
   .ptbl-head, .ptbl-row {
-    grid-template-columns: 1.4fr 1fr 70px 100px 70px;
+    grid-template-columns: 1.3fr 1fr 1.2fr 84px 70px;
     gap: 12px; padding: 12px 16px;
   }
-  .ptbl-head .c-sched, .ptbl-row .c-sched { display: none; }
+  .ptbl-head .c-sched, .ptbl-row .c-sched,
+  .ptbl-head .c-tel, .ptbl-row .c-tel { display: none; }
 }
 @media (max-width: 980px) {
   .ptbl-head, .ptbl-row {
-    grid-template-columns: 1.4fr 1fr 70px 100px;
+    grid-template-columns: 1.3fr 1fr 84px 70px;
   }
-  .ptbl-head .c-anc, .ptbl-row .c-anc { display: none; }
+  .ptbl-head .c-dist, .ptbl-row .c-dist { display: none; }
 }
 @media (max-width: 760px) {
   .ptbl-head, .ptbl-row {
-    grid-template-columns: 1.3fr 70px 100px;
+    grid-template-columns: 1.3fr 84px 70px;
     gap: 10px; padding: 10px 14px;
   }
   .ptbl-head .c-head, .ptbl-row .c-head { display: none; }

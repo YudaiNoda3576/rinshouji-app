@@ -1,10 +1,18 @@
-import { fmtRelativeDate } from '../constants';
-import type { ParishFamily } from '../types';
+import { Pill } from '@/components/ui/Pill';
+
+import {
+  formatDistrict,
+  formatFamilyName,
+  formatHeadName,
+  formatPhone,
+  relationPillColor,
+} from '../constants';
+import type { HouseholdRow } from '../types';
 
 interface TableViewProps {
-  items: ParishFamily[];
-  selected: string;
-  onSelect: (id: string) => void;
+  items: HouseholdRow[];
+  selected: number | null;
+  onSelect: (id: number) => void;
 }
 
 export function TableView({ items, selected, onSelect }: TableViewProps) {
@@ -13,8 +21,9 @@ export function TableView({ items, selected, onSelect }: TableViewProps) {
       <div className="ptbl-head">
         <div className="c-name">家名</div>
         <div className="c-head">戸主</div>
-        <div className="c-mem">家族</div>
-        <div className="c-visit">最近のお参り</div>
+        <div className="c-dist">地区</div>
+        <div className="c-rel">関係区分</div>
+        <div className="c-tel">電話</div>
         <div className="c-anc">過去帳</div>
         <div className="c-sched">直近の予定</div>
       </div>
@@ -23,21 +32,21 @@ export function TableView({ items, selected, onSelect }: TableViewProps) {
              className={'ptbl-row' + (f.id === selected ? ' selected' : '')}
              onClick={() => onSelect(f.id)}>
           <div className="c-name">
-            <div className="t1">{f.name}家</div>
+            <div className="t1">{formatFamilyName(f.familyName)}</div>
           </div>
-          <div className="c-head">{f.head}</div>
-          <div className="c-mem"><b>{f.members}</b><span>名</span></div>
-          <div className="c-visit">
-            <div className="t1">{fmtRelativeDate(f.lastVisit)}</div>
-            <div className="t2">{f.lastVisit}</div>
+          <div className="c-head">{formatHeadName(f.headName)}</div>
+          <div className="c-dist">{formatDistrict(f.district1, f.district2)}</div>
+          <div className="c-rel">
+            {f.relationType
+              ? <Pill color={relationPillColor(f.relationType)}>{f.relationType}</Pill>
+              : <Pill color="gray">未設定</Pill>}
           </div>
-          <div className="c-anc">{f.ancestors}名</div>
-          <div className="c-sched">
-            {f.scheduled ? <span className="schedule-chip">{f.scheduled}</span> : <span className="dim">—</span>}
-          </div>
+          <div className="c-tel">{formatPhone(f.phone, f.mobilePhone)}</div>
+          <div className="c-anc"><b>{f.deceasedCount}</b><span>名</span></div>
+          <div className="c-sched"><span className="dim">—</span></div>
         </div>
       ))}
-      {items.length === 0 && <div className="vt-empty">該当する檀家家はありません。</div>}
+      {items.length === 0 && <div className="vt-empty">該当する檀家はありません。</div>}
     </div>
   );
 }
