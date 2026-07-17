@@ -4,6 +4,7 @@ import { districtsRoute } from "./routes/districts.js";
 import { householdsRoute } from "./routes/households.js";
 import { householdsWriteRoute } from "./routes/households-write.js";
 import { deceasedRoute } from "./routes/deceased.js";
+import { noticesRoute } from "./routes/notices.js";
 
 // Hono アプリ本体。API と静的ページの両方をこのアプリで配信し、同一オリジンで完結させる。
 // 今後ルートを増やす場合はこのファイルに追加していく。
@@ -18,6 +19,7 @@ app.route("/api/districts", districtsRoute);
 app.route("/api/households", householdsRoute);
 app.route("/api/households", householdsWriteRoute);
 app.route("/api/deceased", deceasedRoute);
+app.route("/api/notices", noticesRoute);
 
 // favicon は未用意のため 204 を返してコンソールの 404 を抑止する。
 app.get("/favicon.ico", (c) => c.body(null, 204));

@@ -1,14 +1,31 @@
+// 年忌案内の一斉送付ダイアログ。
+// 【未永続化】実際の送信・保存は未実装。確定時は NoticesPage のローカル state を
+// 「送付済」に上書きしてトースト表示するのみ（リロードで消える）。
+
 import * as React from 'react';
+
+import { fmtDate } from '../utils';
 
 interface SendNoticesDialogProps {
   open: boolean;
   onClose: () => void;
   count: number;
+  onSend: () => void;
 }
 
-export function SendNoticesDialog({ open, onClose, count }: SendNoticesDialogProps) {
+// 日時指定の初期値（今日の3日後）。
+const defaultScheduledDate = (): string => {
+  const d = new Date();
+  d.setDate(d.getDate() + 3);
+  const pad2 = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+};
+
+export function SendNoticesDialog({ open, onClose, count, onSend }: SendNoticesDialogProps) {
   const [channel, setChannel] = React.useState<'mail' | 'print'>('mail');
   const [sendAt, setSendAt] = React.useState<'now' | 'scheduled'>('now');
+  const [scheduledDate, setScheduledDate] = React.useState(defaultScheduledDate);
+  const [scheduledTime, setScheduledTime] = React.useState('09:00');
   if (!open) return null;
   return (
     <div className="dialog-overlay" onClick={onClose}>
@@ -57,8 +74,8 @@ export function SendNoticesDialog({ open, onClose, count }: SendNoticesDialogPro
             </div>
             {sendAt === 'scheduled' && (
               <div style={{display: 'flex', gap: 8, marginTop: 10}}>
-                <input className="input-plain" type="date" defaultValue="2026-05-15" style={{flex: 1}} />
-                <input className="input-plain" type="time" defaultValue="09:00" style={{width: 120}} />
+                <input className="input-plain" type="date" value={scheduledDate} onChange={(e) => setScheduledDate(e.target.value)} style={{flex: 1}} />
+                <input className="input-plain" type="time" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} style={{width: 120}} />
               </div>
             )}
           </div>
@@ -74,13 +91,17 @@ export function SendNoticesDialog({ open, onClose, count }: SendNoticesDialogPro
             </div>
             <div className="ss-row">
               <span>送付日時</span>
-              <strong>{sendAt === 'now' ? '今すぐ' : '2026年5月15日 9:00'}</strong>
+              <strong>{sendAt === 'now' ? '今すぐ' : `${fmtDate(scheduledDate)} ${scheduledTime}`}</strong>
             </div>
           </div>
+
+          <p style={{margin: '14px 0 0', fontSize: 11, color: 'var(--fg2)'}}>
+            ※ 保存はまだ永続化されません。送付状態は画面上のみの反映で、リロードすると未送付に戻ります。
+          </p>
         </div>
         <footer>
           <button className="btn outline" type="button" onClick={onClose}>キャンセル</button>
-          <button className="btn primary" type="button" onClick={onClose}>
+          <button className="btn primary" type="button" onClick={() => { onSend(); onClose(); }}>
             {channel === 'print' ? 'PDFを生成' : '送付する'}
           </button>
         </footer>

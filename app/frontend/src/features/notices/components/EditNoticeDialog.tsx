@@ -1,4 +1,6 @@
-// 年忌案内の編集ダイアログ（対象日・担当・状態）。モックのためデータ実反映はしない。
+// 年忌案内の編集ダイアログ（対象日・状態）。
+// 【未永続化】保存先テーブルが未設計のため、状態変更は NoticesPage のローカル state に
+// 反映されるのみ（リロードで消える）。対象日の変更は現時点では反映されない。
 
 import * as React from 'react';
 
@@ -9,21 +11,18 @@ interface EditNoticeDialogProps {
   open: boolean;
   notice: NoticeCase;
   onClose: () => void;
-  onSave: () => void;
+  onSave: (status: NoticeStatusKey) => void;
 }
 
 interface EditForm {
   targetDate: string;
-  assignee: string;
   status: NoticeStatusKey;
 }
 
-const ASSIGNEE_OPTIONS = ['住職', '副住職', '主任住職'];
 const STATUS_KEYS: NoticeStatusKey[] = ['pending', 'sent', 'confirmed', 'declined'];
 
 const fromNotice = (n: NoticeCase): EditForm => ({
-  targetDate: n.targetDate,
-  assignee: n.assignee,
+  targetDate: n.targetDate ?? '',
   status: n.status,
 });
 
@@ -43,7 +42,7 @@ export function EditNoticeDialog({ open, notice, onClose, onSave }: EditNoticeDi
           <div>
             <h3>案内を編集</h3>
             <p style={{margin: '4px 0 0', fontSize: 12, color: 'var(--fg2)'}}>
-              {notice.kaimyo}（{notice.family}）／ {notice.kaiki}
+              {notice.kaimyo}（{notice.familyName ?? '関連檀家なし'}）／ {notice.kaiki}
             </p>
           </div>
           <button className="x-btn" onClick={onClose} aria-label="閉じる">
@@ -55,12 +54,6 @@ export function EditNoticeDialog({ open, notice, onClose, onSave }: EditNoticeDi
             <div className="form-field">
               <label>対象日</label>
               <input className="input-plain" type="date" value={form.targetDate} onChange={(e) => set('targetDate', e.target.value)} />
-            </div>
-            <div className="form-field">
-              <label>担当</label>
-              <select className="input-plain" value={form.assignee} onChange={(e) => set('assignee', e.target.value)}>
-                {ASSIGNEE_OPTIONS.map((a) => <option key={a} value={a}>{a}</option>)}
-              </select>
             </div>
           </div>
           <div className="form-field" style={{marginTop: 14}}>
@@ -75,10 +68,13 @@ export function EditNoticeDialog({ open, notice, onClose, onSave }: EditNoticeDi
               ))}
             </div>
           </div>
+          <p style={{margin: '14px 0 0', fontSize: 11, color: 'var(--fg2)'}}>
+            ※ 保存はまだ永続化されません。状態変更は画面上のみの反映で、リロードすると元に戻ります。
+          </p>
         </div>
         <footer>
           <button className="btn outline" type="button" onClick={onClose}>キャンセル</button>
-          <button className="btn primary" type="button" onClick={onSave}>変更を保存</button>
+          <button className="btn primary" type="button" onClick={() => onSave(form.status)}>変更を保存</button>
         </footer>
       </div>
     </div>

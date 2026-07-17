@@ -1,6 +1,10 @@
+// 年忌案内 — 詳細パネル。実データ（GET /api/notices の1件）表示版。
+// 連絡先は世帯主（familyHead）と電話番号。孤立故人（householdId null）は「関連檀家なし」。
+// 担当者の管理機能は未実装のため「—」固定。送付日・返答日は未永続化のため表示しない。
+
 import { NOTICE_STATUS } from '../constants';
 import type { NoticeCase } from '../types';
-import { daysUntil, fmtDate } from '../utils';
+import { daysUntil, fmtDate, fmtDeathDate, fmtTargetDate } from '../utils';
 
 interface NoticeDetailProps {
   c: NoticeCase | undefined;
@@ -10,7 +14,8 @@ interface NoticeDetailProps {
 export function NoticeDetail({ c, onEdit }: NoticeDetailProps) {
   if (!c) return null;
   const status = NOTICE_STATUS[c.status];
-  const d = daysUntil(c.targetDate);
+  const d = c.targetDate !== null ? daysUntil(c.targetDate) : null;
+  const recipient = c.familyHead ?? c.familyName ?? 'ご関係者';
 
   return (
     <aside className="card notice-detail">
@@ -23,41 +28,49 @@ export function NoticeDetail({ c, onEdit }: NoticeDetailProps) {
           <span className="kaiki-chip lg">{c.kaiki}</span>
         </div>
         <div className="nd-kai">{c.kaimyo}</div>
-        <div className="nd-sec">{c.secular}（{c.family}）</div>
+        <div className="nd-sec">{c.secularName}（{c.familyName ?? '関連檀家なし'}）</div>
         <div className="nd-target">
-          <span className="nd-target-d">{fmtDate(c.targetDate)}</span>
-          <span className={'nd-target-rel' + (d < 0 ? ' past' : (d <= 30 ? ' near' : ''))}>
-            {d < 0 ? `${-d}日前に実施` : (d === 0 ? '本日' : `あと${d}日`)}
-          </span>
+          <span className="nd-target-d">{fmtTargetDate(c)}</span>
+          {d !== null ? (
+            <span className={'nd-target-rel' + (d < 0 ? ' past' : (d <= 30 ? ' near' : ''))}>
+              {d < 0 ? `${-d}日前に実施` : (d === 0 ? '本日' : `あと${d}日`)}
+            </span>
+          ) : (
+            <span className="nd-target-rel">月日未定</span>
+          )}
         </div>
       </header>
 
       <div className="nd-body">
         <dl className="nd-meta">
-          <dt>没年月日</dt><dd>{fmtDate(c.deathDate)}</dd>
-          <dt>連絡先</dt><dd>{c.familyHead}<span className="dim"> ／ {c.phone}</span></dd>
-          <dt>担当</dt><dd>{c.assignee}</dd>
-          {c.sentAt && (<><dt>送付日</dt><dd>{fmtDate(c.sentAt)}<span className="dim"> (メール)</span></dd></>)}
-          {c.responseAt && (<><dt>返答日</dt><dd>{fmtDate(c.responseAt)}</dd></>)}
+          <dt>没年月日</dt><dd>{fmtDeathDate(c)}</dd>
+          <dt>連絡先</dt>
+          <dd>
+            {c.householdId === null
+              ? '関連檀家なし'
+              : <>{c.familyHead ?? '—'}<span className="dim"> ／ {c.phone ?? '—'}</span></>}
+          </dd>
+          {/* 担当者の管理機能は未実装（固定表示）。 */}
+          <dt>担当</dt><dd>—</dd>
         </dl>
 
         <div className="letter-preview">
           <div className="lp-head">
             <div className="lp-from">青苔山 浄妙寺</div>
-            <div className="lp-date">{fmtDate('2026-05-08')}</div>
+            <div className="lp-date">{fmtDate(new Date().toISOString().slice(0, 10))}</div>
           </div>
-          <div className="lp-recipient">{c.familyHead} 様</div>
+          <div className="lp-recipient">{recipient} 様</div>
           <div className="lp-greet">時下ますます御清祥のこととお慶び申し上げます。</div>
           <p className="lp-body">
-            さて、来る <strong>{fmtDate(c.targetDate)}</strong> に
-            故 <span className="lp-kai">{c.kaimyo}</span>（{c.secular}）様の
+            さて、来る <strong>{fmtTargetDate(c)}</strong> に
+            故 <span className="lp-kai">{c.kaimyo}</span>（{c.secularName}）様の
             <strong>{c.kaiki}</strong>法要を当山にて勤修いたしたく存じます。
           </p>
           <p className="lp-body">
             つきましては、ご家族・ご親族の皆様にご参列いただきたく、ご案内申し上げます。
           </p>
           <dl className="lp-detail">
-            <dt>日時</dt><dd>{fmtDate(c.targetDate)} 午前10時30分より</dd>
+            <dt>日時</dt><dd>{fmtTargetDate(c)} 午前10時30分より</dd>
             <dt>場所</dt><dd>当山 本堂</dd>
             <dt>御布施</dt><dd>お志</dd>
             <dt>会食</dt><dd>法要後、本院にてお膳を用意いたします</dd>

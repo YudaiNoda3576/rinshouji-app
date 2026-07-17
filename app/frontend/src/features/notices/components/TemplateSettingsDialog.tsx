@@ -138,6 +138,9 @@ export function TemplateSettingsDialog({ open, onClose, onSave }: TemplateSettin
               </div>
             </div>
           </div>
+          <p style={{margin: '14px 0 0', fontSize: 11, color: 'var(--fg2)'}}>
+            ※ 保存はまだ永続化されません。テンプレートの変更は画面上のみの反映で、リロードすると元に戻ります。
+          </p>
         </div>
         <footer>
           <button className="btn outline" type="button" onClick={onClose}>キャンセル</button>
