@@ -43,3 +43,34 @@ export function fetchNotices(monthsAhead: number): Promise<NoticeCase[]> {
   const usp = new URLSearchParams({ monthsAhead: String(monthsAhead) });
   return request<NoticeCase[]>(`/notices?${usp.toString()}`);
 }
+
+// POST /api/notices/pdf
+// 案内配列 + テンプレ本文（変数は {{ }} 記法。サーバ側で置換）を渡し、1件1ページの
+// 単一PDF（application/pdf）を Blob で受け取る。JSON を返さないため request() は使わない。
+export async function fetchNoticesPdf(notices: NoticeCase[], templateBody: string): Promise<Blob> {
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}/notices/pdf`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notices, templateBody }),
+    });
+  } catch {
+    throw new Error('サーバーに接続できませんでした。ネットワーク状態を確認してください。');
+  }
+
+  if (!res.ok) {
+    let message = `PDFの生成に失敗しました（status ${res.status}）`;
+    try {
+      const body = (await res.json()) as ApiErrorBody;
+      if (body && typeof body.error === 'string' && body.error.trim() !== '') {
+        message = body.error;
+      }
+    } catch {
+      // レスポンスが JSON でない場合は既定メッセージのまま扱う。
+    }
+    throw new Error(message);
+  }
+
+  return res.blob();
+}

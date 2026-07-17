@@ -34,3 +34,16 @@ type TargetSource = Pick<NoticeCase, 'targetDate' | 'targetYear'>;
 // 実施日の表示（没月日欠損の場合は実施年のみ確定＝「月日未定」）。
 export const fmtTargetDate = (c: TargetSource): string =>
   c.targetDate ? fmtDate(c.targetDate) : `${c.targetYear}年（月日未定）`;
+
+// Blob を指定ファイル名でダウンロードさせる（PDF出力の共通ヘルパー）。
+// NoticeDetail（単件出力）・SendNoticesDialog（一斉印刷）の双方から使う。
+export function downloadBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}

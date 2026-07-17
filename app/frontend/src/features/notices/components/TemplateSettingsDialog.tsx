@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 
+import { NOTICE_TEMPLATES } from '../constants';
 import type { NoticeTemplate } from '../types';
 
 interface TemplateSettingsDialogProps {
@@ -10,68 +11,12 @@ interface TemplateSettingsDialogProps {
   onSave?: () => void;
 }
 
-const TEMPLATES: NoticeTemplate[] = [
-  {
-    id: 'kaiki-letter',
-    name: '年忌案内 (封書)',
-    body: `{{戸主名}} 様
+// テンプレート一覧は constants.ts の NOTICE_TEMPLATES を単一ソースとする
+// （PDF出力の既定テンプレートと共有するため）。
+const TEMPLATES: NoticeTemplate[] = NOTICE_TEMPLATES;
 
-時下ますます御清祥のこととお慶び申し上げます。
-
-さて、来る {{法要日}} に
-故 {{戒名}}（{{俗名}}）様の{{年忌}}法要を当山にて勤修いたしたく存じます。
-
-つきましては、ご家族・ご親族の皆様にご参列いただきたく、ご案内申し上げます。
-
-日時：{{法要日}} 午前10時30分より
-場所：当山 本堂
-御布施：お志
-会食：法要後、本院にてお膳を用意いたします
-
-合掌 {{寺院名}} 住職`,
-  },
-  {
-    id: 'obon',
-    name: 'お盆参拝のご案内',
-    body: `{{戸主名}} 様
-
-盛夏の候、ますます御清祥のこととお慶び申し上げます。
-
-本年もお盆の合同法要を当山にて厳修いたします。
-ご先祖様への御回向に、ぜひご家族おそろいでお参りください。
-
-日時：8月13日〜15日 午前10時より
-場所：当山 本堂
-
-合掌 {{寺院名}} 住職`,
-  },
-  {
-    id: 'higan',
-    name: 'お彼岸参拝のご案内',
-    body: `{{戸主名}} 様
-
-彼岸の候、ますます御清祥のこととお慶び申し上げます。
-
-お彼岸の合同法要を当山にて厳修いたします。
-ご先祖様への御回向に、どうぞお参りください。
-
-日時：彼岸の中日 午前10時より
-場所：当山 本堂
-
-合掌 {{寺院名}} 住職`,
-  },
-  {
-    id: 'shotsuki',
-    name: '月命日リマインダー',
-    body: `{{戸主名}} 様
-
-{{法要日}} は 故 {{戒名}}（{{俗名}}）様の月命日でございます。
-お参りをご希望の際は、お気軽にお申し付けください。
-
-{{寺院名}}`,
-  },
-];
-
+// backend の src/lib/pdf/variables.ts と対応する変数一覧（9種）。
+// 変数を追加・変更する場合は、必ず backend 側の対応表も合わせて更新すること。
 const VARS = ['{{戸主名}}', '{{戒名}}', '{{俗名}}', '{{法要日}}', '{{年忌}}', '{{寺院名}}', '{{住職名}}', '{{家名}}', '{{住所}}'];
 
 export function TemplateSettingsDialog({ open, onClose, onSave }: TemplateSettingsDialogProps) {

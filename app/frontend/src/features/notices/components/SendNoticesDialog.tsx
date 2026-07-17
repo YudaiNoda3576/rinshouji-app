@@ -4,13 +4,19 @@
 
 import * as React from 'react';
 
-import { fmtDate } from '../utils';
+import type { PushToast } from '@/types/toast';
+
+import { fetchNoticesPdf } from '../api';
+import { DEFAULT_NOTICE_TEMPLATE } from '../constants';
+import type { NoticeCase } from '../types';
+import { downloadBlob, fmtDate } from '../utils';
 
 interface SendNoticesDialogProps {
   open: boolean;
   onClose: () => void;
-  count: number;
+  notices: NoticeCase[];
   onSend: () => void;
+  onToast?: PushToast;
 }
 
 // 日時指定の初期値（今日の3日後）。
@@ -21,12 +27,38 @@ const defaultScheduledDate = (): string => {
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 };
 
-export function SendNoticesDialog({ open, onClose, count, onSend }: SendNoticesDialogProps) {
+export function SendNoticesDialog({ open, onClose, notices, onSend, onToast }: SendNoticesDialogProps) {
   const [channel, setChannel] = React.useState<'mail' | 'print'>('mail');
   const [sendAt, setSendAt] = React.useState<'now' | 'scheduled'>('now');
   const [scheduledDate, setScheduledDate] = React.useState(defaultScheduledDate);
   const [scheduledTime, setScheduledTime] = React.useState('09:00');
+  const [generating, setGenerating] = React.useState(false);
+  const count = notices.length;
   if (!open) return null;
+
+  // 郵送 (印刷) の確定時は、選択分をまとめて1つのPDFに出力してダウンロードする。
+  // 生成に失敗した場合は送付済への更新を行わずダイアログを開いたままにする。
+  const handleConfirm = async () => {
+    if (channel === 'print') {
+      if (notices.length === 0) return;
+      setGenerating(true);
+      try {
+        const blob = await fetchNoticesPdf(notices, DEFAULT_NOTICE_TEMPLATE.body);
+        downloadBlob(blob, `年忌案内_${notices.length}件.pdf`);
+      } catch (err) {
+        onToast?.({
+          kind: 'error',
+          title: 'PDFの生成に失敗しました。',
+          desc: err instanceof Error ? err.message : undefined,
+        });
+        setGenerating(false);
+        return;
+      }
+      setGenerating(false);
+    }
+    onSend();
+    onClose();
+  };
   return (
     <div className="dialog-overlay" onClick={onClose}>
       <div className="dialog" style={{width: 540}} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
@@ -100,9 +132,9 @@ export function SendNoticesDialog({ open, onClose, count, onSend }: SendNoticesD
           </p>
         </div>
         <footer>
-          <button className="btn outline" type="button" onClick={onClose}>キャンセル</button>
-          <button className="btn primary" type="button" onClick={() => { onSend(); onClose(); }}>
-            {channel === 'print' ? 'PDFを生成' : '送付する'}
+          <button className="btn outline" type="button" onClick={onClose} disabled={generating}>キャンセル</button>
+          <button className="btn primary" type="button" onClick={handleConfirm} disabled={generating || count === 0}>
+            {generating ? '生成中…' : (channel === 'print' ? 'PDFを生成' : '送付する')}
           </button>
         </footer>
       </div>

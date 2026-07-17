@@ -120,22 +120,21 @@ export function NoticesPage({ onToast }: NoticesPageProps) {
   };
   const clearSelection = () => setSelected(new Set());
 
-  const selectedPending = [...selected].filter((id) => {
-    const c = effective.find((x) => x.id === id);
-    return c !== undefined && c.status === 'pending';
-  });
+  const selectedPendingCases = [...selected]
+    .map((id) => effective.find((x) => x.id === id))
+    .filter((c): c is NoticeCase => c !== undefined && c.status === 'pending');
 
   // 一斉送付: 選択中の未送付分を画面上のみ「送付済」に上書きする（未永続化）。
   const handleBulkSend = () => {
     setStatusOverrides((prev) => {
       const next = new Map(prev);
-      for (const id of selectedPending) next.set(id, 'sent');
+      for (const c of selectedPendingCases) next.set(c.id, 'sent');
       return next;
     });
     setSelected(new Set());
     onToast?.({
       kind: 'success',
-      title: `${selectedPending.length}件を送付済にしました。`,
+      title: `${selectedPendingCases.length}件を送付済にしました。`,
       desc: '※ 画面上のみの反映です（送付状態はまだ永続化されません）。',
     });
   };
@@ -239,9 +238,9 @@ export function NoticesPage({ onToast }: NoticesPageProps) {
               <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
               選択分を印刷
             </button>
-            <button className="btn primary" type="button" onClick={() => setShowSendDialog(true)} disabled={selectedPending.length === 0}>
+            <button className="btn primary" type="button" onClick={() => setShowSendDialog(true)} disabled={selectedPendingCases.length === 0}>
               <svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
-              一斉送付 ({selectedPending.length}件)
+              一斉送付 ({selectedPendingCases.length}件)
             </button>
           </div>
         </div>
@@ -338,14 +337,15 @@ export function NoticesPage({ onToast }: NoticesPageProps) {
           )}
         </div>
 
-        <NoticeDetail c={detail} onEdit={() => setEditOpen(true)} />
+        <NoticeDetail c={detail} onEdit={() => setEditOpen(true)} onToast={onToast} />
       </div>
 
       <SendNoticesDialog
         open={showSendDialog}
         onClose={() => setShowSendDialog(false)}
-        count={selectedPending.length}
+        notices={selectedPendingCases}
         onSend={handleBulkSend}
+        onToast={onToast}
       />
       <TemplateSettingsDialog
         open={showTemplates}
