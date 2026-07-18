@@ -563,15 +563,24 @@ a { color: inherit; }
   background: #fff; border-radius: 10px; width: 420px; max-width: 92vw;
   box-shadow: 0 25px 50px -12px rgb(0 0 0 / .25);
   overflow: hidden;
+  /* 縦に長いフォームでもビューポート内に収め、あふれた分は .body 内スクロールにする */
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
+  display: flex; flex-direction: column;
   animation: dlg-in .18s cubic-bezier(.2,.8,.2,1);
 }
 @keyframes dlg-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
-.dialog header { padding: 18px 22px; border-bottom: 1px solid var(--border-default); }
+/* form ラッパのあるダイアログ（NewParishDialog 等）でも body/footer を
+   .dialog 直下の flex アイテムとして扱う（submit 動作には影響しない）。 */
+.dialog form { display: contents; }
+.dialog header { padding: 18px 22px; border-bottom: 1px solid var(--border-default); flex-shrink: 0; }
 .dialog header h3 { margin: 0; font-size: 15px; font-weight: 600; }
 .dialog .body { padding: 18px 22px; font-size: 13px; color: var(--fg2); line-height: 1.6; }
+.dialog .body, .dialog .epm-body { overflow-y: auto; min-height: 0; flex: 1 1 auto; }
 .dialog footer {
   padding: 14px 22px; border-top: 1px solid var(--border-default);
   display: flex; justify-content: flex-end; gap: 8px; background: hsl(210 11% 98%);
+  flex-shrink: 0;
 }
 .btn {
   display: inline-flex; align-items: center; gap: 6px;

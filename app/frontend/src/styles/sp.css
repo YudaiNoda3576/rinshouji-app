@@ -322,7 +322,9 @@
   .dialog {
     width: 100% !important;
     max-width: 100% !important;
-    height: 100vh; max-height: 100vh;
+    /* モバイルブラウザの URL バーを考慮し dvh を優先（非対応環境は vh にフォールバック） */
+    height: 100vh; height: 100dvh;
+    max-height: 100vh; max-height: 100dvh;
     border-radius: 0;
     display: flex; flex-direction: column;
   }
