@@ -83,6 +83,25 @@ export function updateDeceased(id: string, payload: DeceasedPayload): Promise<vo
   });
 }
 
-export function fetchHouseholdOptions(q: string): Promise<HouseholdOption[]> {
-  return request<HouseholdOption[]>(`/households${buildQuery([['q', q]])}`);
+// GET /api/households はサーバーサイドページネーション済み（1ページ20件）のため、
+// 家フィルタ用セレクトに全件を出すには total に達するまでページを進めて取得する。
+interface HouseholdOptionsPage {
+  items: HouseholdOption[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export async function fetchHouseholdOptions(q: string): Promise<HouseholdOption[]> {
+  const items: HouseholdOption[] = [];
+  let page = 1;
+  for (;;) {
+    const res = await request<HouseholdOptionsPage>(
+      `/households${buildQuery([['q', q], ['page', String(page)]])}`,
+    );
+    items.push(...res.items);
+    if (res.items.length === 0 || items.length >= res.total) break;
+    page += 1;
+  }
+  return items;
 }

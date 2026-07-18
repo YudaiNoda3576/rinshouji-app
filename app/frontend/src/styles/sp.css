@@ -129,6 +129,9 @@
   .ptbl-row .c-name { grid-column: 1 / -1; }
   .ptbl-row .c-head, .ptbl-row .c-dist, .ptbl-row .c-rel,
   .ptbl-row .c-tel, .ptbl-row .c-anc, .ptbl-row .c-sched { display: none !important; }
+  /* タップ操作しやすいよう最小タップ領域を確保する */
+  .pg-btn { width: 40px; height: 40px; }
+  .pg-select { height: 40px; }
 }
 
 /* ============================================================

@@ -1386,6 +1386,28 @@ a { color: inherit; }
 }
 .parish-state p { margin: 0; }
 
+/* Pagination（一覧下部・中央配置） */
+.pagination {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 16px 0 4px; font-size: 13px; color: var(--fg1);
+}
+.pg-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 6px;
+  border: 1px solid var(--border-default); background: #fff; color: var(--fg1);
+  font-size: 13px; line-height: 1; cursor: pointer; font-family: inherit;
+  transition: background-color .15s, border-color .15s, opacity .15s;
+}
+.pg-btn:hover:not(:disabled) { background: hsl(215 28% 96%); }
+.pg-btn:disabled { opacity: .4; cursor: not-allowed; }
+.pg-select {
+  height: 32px; padding: 0 10px; border-radius: 6px;
+  border: 1px solid var(--border-default); background: hsl(210 11% 96%);
+  color: var(--fg1); font-size: 13px; font-family: inherit;
+  outline: none; cursor: pointer;
+}
+.pg-select:focus { border-color: var(--accent-color, var(--temple-blue)); }
+
 @media (max-width: 1280px) {
   .parish-body { grid-template-columns: 1fr; }
   .parish-detail { position: static; }

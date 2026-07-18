@@ -4,6 +4,7 @@ import type { PushToast } from '@/types/toast';
 
 import { ChipGroup } from '@/components/ui/ChipGroup';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { Pagination } from '@/components/ui/Pagination';
 
 import {
   createHousehold,
@@ -75,6 +76,11 @@ export function ParishionersPage({ onToast }: ParishionersPageProps) {
   const [listLoading, setListLoading] = React.useState(true);
   const [listError, setListError] = React.useState<string | null>(null);
 
+  // ページネーション（サーバーサイド）
+  const [page, setPage] = React.useState(1);
+  const [total, setTotal] = React.useState(0);
+  const [pageSize, setPageSize] = React.useState(20);
+
   // 検索・フィルタ・ソート
   const [q, setQ] = React.useState('');
   const [debouncedQ, setDebouncedQ] = React.useState('');
@@ -100,9 +106,13 @@ export function ParishionersPage({ onToast }: ParishionersPageProps) {
 
   const filterDistrictId = filterD2 ?? filterD1;
 
-  // q のデバウンス（300ms）。
+  // q のデバウンス（300ms）。検索文字列の確定時に1ページ目へ戻す
+  // （filter/sort 変更時のリセットと同様、ハンドラ側でまとめて更新し二重フェッチを防ぐ）。
   React.useEffect(() => {
-    const t = setTimeout(() => setDebouncedQ(q), 300);
+    const t = setTimeout(() => {
+      setDebouncedQ(q);
+      setPage(1);
+    }, 300);
     return () => clearTimeout(t);
   }, [q]);
 
@@ -117,33 +127,45 @@ export function ParishionersPage({ onToast }: ParishionersPageProps) {
     return () => ctrl.abort();
   }, []);
 
-  // 一覧の取得（検索・フィルタ・ソート・再読込トリガーに反応）。
+  // 一覧の取得（検索・フィルタ・ソート・ページ・再読込トリガーに反応）。
   React.useEffect(() => {
     const ctrl = new AbortController();
     setListLoading(true);
     setListError(null);
     fetchHouseholds(
-      { q: debouncedQ, districtId: filterDistrictId, relationType, includeInactive, sort },
+      { q: debouncedQ, districtId: filterDistrictId, relationType, includeInactive, sort, page },
       ctrl.signal,
     )
-      .then(rows => {
-        setList(rows);
+      .then(res => {
+        // 削除等で現在ページが総ページ数を超えた場合は最終ページへ戻す
+        // （このフェッチ結果は破棄し、補正後のページで再取得させる）。
+        if (res.items.length === 0 && res.total > 0) {
+          const lastPage = Math.max(1, Math.ceil(res.total / res.pageSize));
+          if (lastPage !== page) {
+            setPage(lastPage);
+            return;
+          }
+        }
+        setList(res.items);
+        setTotal(res.total);
+        setPageSize(res.pageSize);
         setSelectedId(prev => {
-          if (prev != null && rows.some(r => r.id === prev)) return prev;
-          return rows.length > 0 ? rows[0].id : null;
+          if (prev != null && res.items.some(r => r.id === prev)) return prev;
+          return res.items.length > 0 ? res.items[0].id : null;
         });
       })
       .catch((e: unknown) => {
         if (ctrl.signal.aborted) return;
         setListError(e instanceof Error ? e.message : '一覧の取得に失敗しました。');
         setList([]);
+        setTotal(0);
         setSelectedId(null);
       })
       .finally(() => {
         if (!ctrl.signal.aborted) setListLoading(false);
       });
     return () => ctrl.abort();
-  }, [debouncedQ, filterDistrictId, relationType, includeInactive, sort, reloadKey]);
+  }, [debouncedQ, filterDistrictId, relationType, includeInactive, sort, page, reloadKey]);
 
   // 詳細の取得（選択変更・再読込に反応）。
   React.useEffect(() => {
@@ -234,16 +256,16 @@ export function ParishionersPage({ onToast }: ParishionersPageProps) {
         </div>
         <div className="parish-filters">
           <select className="input-plain" value={filterD1 ?? ''}
-                  onChange={(e) => { const v = e.target.value === '' ? null : Number(e.target.value); setFilterD1(v); setFilterD2(null); }}>
+                  onChange={(e) => { const v = e.target.value === '' ? null : Number(e.target.value); setFilterD1(v); setFilterD2(null); setPage(1); }}>
             <option value="">地区（区分1）</option>
             {level1Districts(districts).map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
           <select className="input-plain" value={filterD2 ?? ''} disabled={filterD1 == null}
-                  onChange={(e) => setFilterD2(e.target.value === '' ? null : Number(e.target.value))}>
+                  onChange={(e) => { setFilterD2(e.target.value === '' ? null : Number(e.target.value)); setPage(1); }}>
             <option value="">区分2</option>
             {level2Districts(districts, filterD1).map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
-          <select className="input-plain" value={relationType} onChange={(e) => setRelationType(e.target.value)}>
+          <select className="input-plain" value={relationType} onChange={(e) => { setRelationType(e.target.value); setPage(1); }}>
             <option value="">関係区分（全て）</option>
             {RELATION_TYPES.map(r => <option key={r} value={r}>{r}</option>)}
           </select>
@@ -251,12 +273,12 @@ export function ParishionersPage({ onToast }: ParishionersPageProps) {
         <ChipGroup label="並び"
           value={sort}
           options={SORT_OPTIONS}
-          onChange={(v) => setSort(v as HouseholdSort)} />
+          onChange={(v) => { setSort(v as HouseholdSort); setPage(1); }} />
         <label className="check-label parish-incl">
-          <input type="checkbox" checked={includeInactive} onChange={(e) => setIncludeInactive(e.target.checked)} />
+          <input type="checkbox" checked={includeInactive} onChange={(e) => { setIncludeInactive(e.target.checked); setPage(1); }} />
           離檀世帯を含む
         </label>
-        <div className="count">{list.length}家</div>
+        <div className="count">{total}家</div>
       </div>
 
       <div className="parish-body">
@@ -269,7 +291,10 @@ export function ParishionersPage({ onToast }: ParishionersPageProps) {
           ) : listLoading && list.length === 0 ? (
             <div className="parish-state card-block"><p>読み込み中…</p></div>
           ) : (
-            <TableView items={list} selected={selectedId} onSelect={setSelectedId} />
+            <>
+              <TableView items={list} selected={selectedId} onSelect={setSelectedId} />
+              <Pagination page={page} total={total} pageSize={pageSize} onChange={setPage} />
+            </>
           )}
         </div>
 

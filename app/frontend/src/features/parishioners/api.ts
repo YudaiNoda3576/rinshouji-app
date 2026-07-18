@@ -4,7 +4,7 @@ import type {
   District,
   HouseholdDetail,
   HouseholdForm,
-  HouseholdRow,
+  HouseholdListResponse,
   HouseholdSort,
 } from './types';
 
@@ -42,6 +42,7 @@ export interface HouseholdQuery {
   relationType?: string;
   includeInactive?: boolean;
   sort?: HouseholdSort;
+  page?: number;
 }
 
 export function fetchDistricts(signal?: AbortSignal): Promise<District[]> {
@@ -51,16 +52,17 @@ export function fetchDistricts(signal?: AbortSignal): Promise<District[]> {
 export function fetchHouseholds(
   query: HouseholdQuery,
   signal?: AbortSignal,
-): Promise<HouseholdRow[]> {
+): Promise<HouseholdListResponse> {
   const params = new URLSearchParams();
   if (query.q && query.q.trim() !== '') params.set('q', query.q.trim());
   if (query.districtId != null) params.set('districtId', String(query.districtId));
   if (query.relationType) params.set('relationType', query.relationType);
   if (query.includeInactive) params.set('includeInactive', 'true');
   if (query.sort) params.set('sort', query.sort);
+  if (query.page != null) params.set('page', String(query.page));
   const qs = params.toString();
   return fetch(`${BASE}/households${qs ? `?${qs}` : ''}`, { signal }).then(res =>
-    parseJson<HouseholdRow[]>(res),
+    parseJson<HouseholdListResponse>(res),
   );
 }
 

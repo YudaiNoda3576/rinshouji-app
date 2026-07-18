@@ -28,6 +28,14 @@ export interface HouseholdRow {
   deceasedCount: number;
 }
 
+// 一覧レスポンス。GET /api/households はサーバーサイドページネーション済み（1ページ20件）。
+export interface HouseholdListResponse {
+  items: HouseholdRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 // 家族構成の1名分（household_members）。
 export interface Member {
   id: number;
