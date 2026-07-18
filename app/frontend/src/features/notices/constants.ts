@@ -3,6 +3,9 @@
 
 import type { NoticeStatusInfo, NoticeStatusKey, NoticeTemplate } from './types';
 
+// 一覧のクライアントサイドページング（1ページあたりの件数）。
+export const PAGE_SIZE = 20;
+
 export const NOTICE_STATUS: Record<NoticeStatusKey, NoticeStatusInfo> = {
   pending:   { label: '未送付', dot: '#9CA3AF', tint: 'hsl(210 11% 96%)', dark: '#4B5563' },
   sent:      { label: '送付済', dot: 'var(--temple-blue)',   tint: 'var(--temple-blue-tint)',   dark: '#1E3A8A' },

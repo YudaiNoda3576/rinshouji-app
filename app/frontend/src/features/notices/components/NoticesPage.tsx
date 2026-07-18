@@ -8,8 +8,10 @@ import * as React from 'react';
 
 import type { PushToast } from '@/types/toast';
 
+import { Pagination } from '@/components/ui/Pagination';
+
 import { fetchNotices } from '../api';
-import { NOTICE_STATUS } from '../constants';
+import { NOTICE_STATUS, PAGE_SIZE } from '../constants';
 import type { NoticeCase, NoticeGroupBy, NoticePeriod, NoticeStatusFilter, NoticeStatusKey } from '../types';
 import { daysUntil, fmtDate, fmtMonth } from '../utils';
 import { EditNoticeDialog } from './EditNoticeDialog';
@@ -29,6 +31,8 @@ export function NoticesPage({ onToast }: NoticesPageProps) {
   const [statusFilter, setStatusFilter] = React.useState<NoticeStatusFilter>('all');
   const [groupBy, setGroupBy] = React.useState<NoticeGroupBy>('month'); // month / family / status
   const [q, setQ] = React.useState('');
+  // クライアントサイドページング（フェッチは page に依存しないため二重フェッチは起きない）。
+  const [page, setPage] = React.useState(1);
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
   const [detailId, setDetailId] = React.useState<string | null>(null);
   const [showSendDialog, setShowSendDialog] = React.useState(false);
@@ -84,10 +88,24 @@ export function NoticesPage({ onToast }: NoticesPageProps) {
   });
   // 並びは API の targetDate 昇順（null=月日未定は末尾）をそのまま使う。
 
-  // グループ表示（月別/家別/状態別）。
+  // 期間・状態フィルタ・検索の変更時は1ページ目に戻す。
+  React.useEffect(() => {
+    setPage(1);
+  }, [period, statusFilter, q]);
+
+  // 表示ページの切り出し。フィルタ変更等で範囲外になった場合は導出値でクランプする
+  // （統計カード・全選択・一斉送付は filtered 全件ベースのまま変えない）。
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pagedCases = React.useMemo(
+    () => filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [filtered, safePage],
+  );
+
+  // グループ表示（月別/家別/状態別）。ページ内の該当分のみでグルーピングする。
   const groups = React.useMemo(() => {
     const g = new Map<string, NoticeCase[]>();
-    for (const c of filtered) {
+    for (const c of pagedCases) {
       let key: string;
       if (groupBy === 'month') key = c.targetDate !== null ? fmtMonth(c.targetDate) : `${c.targetYear}年（月日未定）`;
       else if (groupBy === 'family') key = c.familyName ?? '関連檀家なし';
@@ -97,7 +115,7 @@ export function NoticesPage({ onToast }: NoticesPageProps) {
       else g.set(key, [c]);
     }
     return [...g.entries()];
-  }, [filtered, groupBy]);
+  }, [pagedCases, groupBy]);
 
   const stats = {
     total: filtered.length,
@@ -333,6 +351,8 @@ export function NoticesPage({ onToast }: NoticesPageProps) {
               {filtered.length === 0 && (
                 <div className="empty">該当する年忌はありません。</div>
               )}
+
+              <Pagination page={safePage} total={filtered.length} pageSize={PAGE_SIZE} onChange={setPage} />
             </>
           )}
         </div>
