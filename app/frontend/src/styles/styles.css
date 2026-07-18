@@ -858,7 +858,6 @@ a { color: inherit; }
 .md-foot .btn { flex: 1; justify-content: center; }
 
 /* Memorial dialog */
-.memorial-dialog { max-width: 720px; }
 .memorial-dialog-body { padding: 22px 24px; }
 .kaimyo-preview {
   padding: 18px 20px; margin-bottom: 18px; border-radius: 8px;
@@ -1451,7 +1450,8 @@ a { color: inherit; }
 }
 
 /* Dialog form fields (shared by New*Dialog forms) */
-.form-field { display: flex; flex-direction: column; gap: 6px; }
+/* min-width: 0 — グリッド内で input の固有最小幅により 1fr 列が縮めず右余白を食いつぶすのを防ぐ */
+.form-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .form-field label { font-size: 12px; font-weight: 500; color: var(--fg1); }
 .input-plain {
   height: 38px;
