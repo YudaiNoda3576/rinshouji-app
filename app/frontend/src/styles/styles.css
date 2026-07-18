@@ -735,6 +735,8 @@ a { color: inherit; }
   background: hsl(210 11% 98%); border-bottom: 1px solid var(--border-default);
 }
 .memorial-list { list-style: none; margin: 0; padding: 0; }
+/* カードは padding:0 のため、カード内ページャに上下余白と区切り線を持たせる */
+.memorial-list-card .pagination { padding: 14px 0; border-top: 1px solid hsl(215 28% 95%); }
 .memorial-row {
   display: grid; grid-template-columns: 1fr 200px 180px;
   align-items: center; gap: 14px;

@@ -4,6 +4,8 @@ import * as React from 'react';
 
 import type { PushToast } from '@/types/toast';
 
+import { Pagination } from '@/components/ui/Pagination';
+
 import {
   createDeceased,
   fetchDeceasedDetail,
@@ -11,6 +13,7 @@ import {
   fetchHouseholdOptions,
   updateDeceased,
 } from '../api';
+import { PAGE_SIZE } from '../constants';
 import { useDebouncedValue } from '../hooks';
 import type { DeceasedDetail, DeceasedForm, DeceasedListItem, HouseholdOption, NextAnniversary } from '../types';
 import { anniversarySortKey, fmtDeathDate, nextAnniversary, toDeceasedForm, toDeceasedPayload } from '../utils';
@@ -52,6 +55,8 @@ export function MemorialPage({ onToast }: MemorialPageProps) {
   const debouncedQ = useDebouncedValue(q, 300);
   const [familyFilter, setFamilyFilter] = React.useState('all');
   const [sort, setSort] = React.useState<SortKey>('upcoming');
+  // クライアントサイドページング（フェッチは page に依存しないため二重フェッチは起きない）。
+  const [page, setPage] = React.useState(1);
 
   const [households, setHouseholds] = React.useState<HouseholdOption[]>([]);
 
@@ -123,16 +128,29 @@ export function MemorialPage({ onToast }: MemorialPageProps) {
     );
   }, [list, sort, nextMap]);
 
-  // 選択中IDが表示リストから外れたら先頭を選び直す。
+  // 検索・家フィルタ・並び順の変更時は1ページ目に戻す。
   React.useEffect(() => {
-    if (displayedList.length === 0) {
+    setPage(1);
+  }, [debouncedQ, familyFilter, sort]);
+
+  // 表示ページの切り出し。削除等で範囲外になった場合は導出値でクランプする。
+  const totalPages = Math.max(1, Math.ceil(displayedList.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pagedList = React.useMemo(
+    () => displayedList.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [displayedList, safePage],
+  );
+
+  // 選択中IDが表示ページから外れたらページ先頭を選び直す。
+  React.useEffect(() => {
+    if (pagedList.length === 0) {
       if (selectedId !== null) setSelectedId(null);
       return;
     }
-    if (!displayedList.some((e) => e.id === selectedId)) {
-      setSelectedId(displayedList[0].id);
+    if (!pagedList.some((e) => e.id === selectedId)) {
+      setSelectedId(pagedList[0].id);
     }
-  }, [displayedList, selectedId]);
+  }, [pagedList, selectedId]);
 
   // 詳細取得。
   React.useEffect(() => {
@@ -286,7 +304,7 @@ export function MemorialPage({ onToast }: MemorialPageProps) {
                 <div className="mlh-next">次の年忌</div>
               </div>
               <ul className="memorial-list">
-                {displayedList.map((entry) => {
+                {pagedList.map((entry) => {
                   const deathDate = fmtDeathDate(entry);
                   const next = nextMap.get(entry.id) ?? null;
                   return (
@@ -319,6 +337,7 @@ export function MemorialPage({ onToast }: MemorialPageProps) {
                   );
                 })}
               </ul>
+              <Pagination page={safePage} total={displayedList.length} pageSize={PAGE_SIZE} onChange={setPage} />
             </>
           )}
         </div>
