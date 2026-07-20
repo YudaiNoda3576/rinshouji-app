@@ -4,7 +4,11 @@ import * as React from 'react';
 
 import type { PushToast } from '@/types/toast';
 
+import { Fab } from '@/components/ui/Fab';
+import { FilterSheet } from '@/components/ui/FilterSheet';
 import { Pagination } from '@/components/ui/Pagination';
+import { SpBackBar } from '@/components/ui/SpBackBar';
+import { useIsSp } from '@/hooks/useIsSp';
 
 import {
   createDeceased,
@@ -18,37 +22,16 @@ import { useDebouncedValue } from '../hooks';
 import type { DeceasedDetail, DeceasedForm, DeceasedListItem, HouseholdOption, NextAnniversary } from '../types';
 import { anniversarySortKey, fmtDeathDate, nextAnniversary, toDeceasedForm, toDeceasedPayload } from '../utils';
 import { MemorialDetail } from './MemorialDetail';
+import { MemorialToolbar } from './MemorialToolbar';
+import type { MemorialSortKey } from './MemorialToolbar';
 import { NewMemorialDialog } from './NewMemorialDialog';
+import { NextChip } from './NextChip';
 
 interface MemorialPageProps {
   onToast?: PushToast;
 }
 
-type SortKey = 'upcoming' | 'recent' | 'name';
-
-function renderNextChip(next: NextAnniversary | null) {
-  if (!next) {
-    return <span className="next-chip pending">不明</span>;
-  }
-  if (next.status === 'done') {
-    return <span className="next-chip done">{next.label} 済</span>;
-  }
-  if (next.status === 'monthDayUnknown') {
-    return (
-      <span className="next-chip pending">
-        {next.label}
-        <span className="next-d">{next.year}年度・月日未定</span>
-      </span>
-    );
-  }
-  const soon = next.daysUntil != null && next.daysUntil <= 31;
-  return (
-    <span className={'next-chip' + (soon ? ' soon' : '')}>
-      {next.label}
-      <span className="next-d">あと{next.daysUntil}日</span>
-    </span>
-  );
-}
+type SortKey = MemorialSortKey;
 
 export function MemorialPage({ onToast }: MemorialPageProps) {
   const [q, setQ] = React.useState('');
@@ -72,6 +55,23 @@ export function MemorialPage({ onToast }: MemorialPageProps) {
   const [newOpen, setNewOpen] = React.useState(false);
   const [editOpen, setEditOpen] = React.useState(false);
   const [reloadToken, setReloadToken] = React.useState(0);
+
+  // SP 専用: 詳細の全画面表示・フィルタシートの開閉。
+  const isSp = useIsSp();
+  const [detailOpen, setDetailOpen] = React.useState(false);
+  const [filterOpen, setFilterOpen] = React.useState(false);
+
+  // SP で詳細を開いた瞬間、スクロール位置を先頭へ戻す（一覧の scrollTop 引き継ぎ防止）。
+  // 実スクロールコンテナは .dash-main だが、判別に依存しないよう window も併せて 0 にする。
+  React.useEffect(() => {
+    if (!isSp || !detailOpen) return;
+    const id = requestAnimationFrame(() => {
+      const main = document.querySelector('.dash-main');
+      if (main) main.scrollTop = 0;
+      window.scrollTo(0, 0);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [isSp, detailOpen]);
 
   // 檀家セレクト（家フィルタ用）。households API から一括取得する。
   React.useEffect(() => {
@@ -210,6 +210,22 @@ export function MemorialPage({ onToast }: MemorialPageProps) {
   const retryList = () => setReloadToken((t) => t + 1);
   const retryDetail = () => setReloadToken((t) => t + 1);
 
+  // フィルタが1つでも掛かっているか（SP のフィルタアイコンにドット表示するため）。
+  const hasActiveFilter = familyFilter !== 'all' || sort !== 'upcoming';
+  // SP 戻るバーのタイトル用に、選択中の戒名を一覧から引く。
+  const selectedKaimyo = list.find((e) => e.id === selectedId)?.kaimyo ?? '';
+
+  // フィルタ群（デスクトップはツールバー内、SP はシート内に同じものを描画）。
+  const filtersNode = (
+    <MemorialToolbar
+      households={households}
+      familyFilter={familyFilter}
+      sort={sort}
+      onChangeFamily={setFamilyFilter}
+      onChangeSort={setSort}
+    />
+  );
+
   const handleCreate = async (form: DeceasedForm) => {
     const result = await createDeceased(toDeceasedPayload(form));
     onToast?.({ kind: 'success', title: '過去帳に登録しました。', desc: `${form.kaimyo} / ${form.secularName}` });
@@ -227,7 +243,7 @@ export function MemorialPage({ onToast }: MemorialPageProps) {
   };
 
   return (
-    <div className="page-shell memorial-page">
+    <div className={'page-shell memorial-page' + (isSp && detailOpen ? ' sp-detail-open' : '')}>
       <div className="page-head">
         <div>
           <h1>過去帳</h1>
@@ -265,24 +281,22 @@ export function MemorialPage({ onToast }: MemorialPageProps) {
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="戒名・俗名・家名で検索" />
         </div>
-        <div className="mt-filter">
-          <label>家</label>
-          <select value={familyFilter} onChange={(e) => setFamilyFilter(e.target.value)}>
-            <option value="all">すべての家</option>
-            {households.map((h) => (
-              <option key={h.id} value={h.id}>{h.familyName}</option>
-            ))}
-          </select>
-        </div>
-        <div className="mt-filter">
-          <label>並び順</label>
-          <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
-            <option value="upcoming">年忌が近い順</option>
-            <option value="recent">没年月日が新しい順</option>
-            <option value="name">家名順</option>
-          </select>
-        </div>
-        <div className="mt-count">{displayedList.length}件</div>
+        {isSp && (
+          <button className="sp-filter-btn" type="button" aria-label="絞り込み" onClick={() => setFilterOpen(true)}>
+            <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            {hasActiveFilter && <span className="sp-filter-dot" />}
+          </button>
+        )}
+        {isSp ? (
+          <FilterSheet open={filterOpen} onClose={() => setFilterOpen(false)} count={`${displayedList.length}件`}>
+            {filtersNode}
+          </FilterSheet>
+        ) : (
+          <>
+            {filtersNode}
+            <div className="mt-count">{displayedList.length}件</div>
+          </>
+        )}
       </div>
 
       <div className="memorial-body">
@@ -311,7 +325,7 @@ export function MemorialPage({ onToast }: MemorialPageProps) {
                     <li
                       key={entry.id}
                       className={'memorial-row' + (entry.id === selectedId ? ' selected' : '')}
-                      onClick={() => setSelectedId(entry.id)}
+                      onClick={() => { setSelectedId(entry.id); setDetailOpen(true); }}
                     >
                       <div className="mr-main">
                         <div className="mr-kaimyo">{entry.kaimyo}</div>
@@ -332,7 +346,7 @@ export function MemorialPage({ onToast }: MemorialPageProps) {
                         <div className="d-v">{deathDate.text}</div>
                         <div className="d-meta">享年 {entry.ageAtDeath != null ? entry.ageAtDeath : '不詳'}</div>
                       </div>
-                      <div className="mr-next">{renderNextChip(next)}</div>
+                      <div className="mr-next"><NextChip next={next} /></div>
                     </li>
                   );
                 })}
@@ -341,6 +355,10 @@ export function MemorialPage({ onToast }: MemorialPageProps) {
             </>
           )}
         </div>
+
+        {isSp && detailOpen && (
+          <SpBackBar title={selectedKaimyo} onBack={() => setDetailOpen(false)} />
+        )}
 
         {detailLoading ? (
           <aside className="card memorial-detail"><div className="empty">読み込み中…</div></aside>
@@ -370,6 +388,8 @@ export function MemorialPage({ onToast }: MemorialPageProps) {
         onClose={() => setEditOpen(false)}
         onSave={handleUpdate}
       />
+
+      {isSp && <Fab color="purple" onClick={() => setNewOpen(true)} label="新規登録" />}
     </div>
   );
 }

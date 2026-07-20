@@ -75,16 +75,31 @@
    Stats grids — 2 cols then 1
    ============================================================ */
 @media (max-width: 640px) {
-  .stats4, .memorial-stats, .notice-stats, .pmap-stats {
+  .stats4, .pmap-stats {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 10px !important;
   }
   .stat-card { padding: 14px 12px; gap: 10px; }
-  .stat-card .value, .mstat-v, .nstat-v, .pm-stat-v { font-size: 20px; }
-  .mstat, .nstat, .pm-stat { padding: 12px 14px; }
+  .stat-card .value, .pm-stat-v { font-size: 20px; }
+  .pm-stat { padding: 12px 14px; }
+
+  /* D: 過去帳・年忌案内の統計は横スクロールの小型チップ1行に圧縮する。
+     display に !important を付けないことで、A の詳細全画面ルール
+     （.xxx-page.sp-detail-open .xxx-stats { display:none }、specificity 高）を勝たせる。 */
+  .memorial-stats, .notice-stats {
+    display: flex; flex-wrap: nowrap; overflow-x: auto;
+    gap: 8px; -webkit-overflow-scrolling: touch;
+    grid-template-columns: none;
+  }
+  .mstat, .nstat {
+    flex: 0 0 auto; flex-direction: row; align-items: baseline; gap: 6px;
+    padding: 8px 12px;
+  }
+  .mstat-v, .nstat-v { font-size: 16px; }
+  .nstat-meter { display: none; }
 }
 @media (max-width: 420px) {
-  .stats4, .memorial-stats, .notice-stats, .pmap-stats {
+  .stats4, .pmap-stats {
     grid-template-columns: 1fr !important;
   }
 }
@@ -152,6 +167,31 @@
   .md-kaimyo { font-size: 20px; }
   .md-meta { grid-template-columns: 1fr 1fr; }
   .nd-meta, .pmd-meta { grid-template-columns: 80px 1fr !important; }
+}
+
+/* ============================================================
+   MEMORIAL — SP: ヘッダ隠し・検索+フィルタアイコン・詳細全画面（第2段階）
+   ============================================================ */
+@media (max-width: 640px) {
+  /* ページ見出しは隠し、新規は FAB に集約する */
+  .memorial-page .page-head { display: none; }
+
+  /* ツールバー: 検索ボックス + フィルタアイコンを1行に並べる */
+  .memorial-page .memorial-tools { flex-direction: row; align-items: center; gap: 8px; }
+  .memorial-page .memorial-tools .search-wrap {
+    flex: 1 1 auto !important; width: auto; min-width: 0 !important;
+  }
+
+  /* 既定（一覧のみ表示）は詳細を隠す */
+  .memorial-page:not(.sp-detail-open) .memorial-detail { display: none; }
+
+  /* 詳細を開いたら統計・ツールバー・一覧・FAB を隠し、詳細を全幅表示 */
+  .memorial-page.sp-detail-open .memorial-stats,
+  .memorial-page.sp-detail-open .memorial-tools,
+  .memorial-page.sp-detail-open .memorial-list-card,
+  .memorial-page.sp-detail-open .fab { display: none; }
+  .memorial-page.sp-detail-open .memorial-body { grid-template-columns: 1fr !important; }
+  .memorial-page.sp-detail-open .memorial-detail { display: block; }
 }
 
 /* ============================================================
@@ -264,6 +304,31 @@
   .ch-card { padding: 10px 12px; gap: 10px; }
   .ch-desc { font-size: 10px; }
   .nd-kai { font-size: 18px; }
+}
+
+/* ============================================================
+   NOTICES — SP: ヘッダ隠し・検索+フィルタアイコン・詳細全画面（第2段階）
+   ============================================================ */
+@media (max-width: 640px) {
+  /* ページ見出しは隠す（テンプレート設定はフィルタシート下部へ移設。FAB は付けない） */
+  .notices-page .page-head { display: none; }
+
+  /* ツールバー: 検索ボックス + フィルタアイコンを1行に並べる */
+  .notices-page .notice-toolbar { flex-direction: row; align-items: center; gap: 8px; }
+  .notices-page .notice-toolbar .search-wrap {
+    flex: 1 1 auto !important; width: auto; min-width: 0 !important;
+  }
+
+  /* 既定（一覧のみ表示）は詳細を隠す */
+  .notices-page:not(.sp-detail-open) .notice-detail { display: none; }
+
+  /* 詳細を開いたら統計・ツールバー・一覧・一括バーを隠し、詳細を全幅表示 */
+  .notices-page.sp-detail-open .notice-stats,
+  .notices-page.sp-detail-open .notice-toolbar,
+  .notices-page.sp-detail-open .notice-list,
+  .notices-page.sp-detail-open .bulk-bar { display: none; }
+  .notices-page.sp-detail-open .notice-body { grid-template-columns: 1fr !important; }
+  .notices-page.sp-detail-open .notice-detail { display: block; }
 }
 
 /* ============================================================

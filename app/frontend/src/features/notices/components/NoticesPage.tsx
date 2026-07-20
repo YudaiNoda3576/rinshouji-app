@@ -8,7 +8,10 @@ import * as React from 'react';
 
 import type { PushToast } from '@/types/toast';
 
+import { FilterSheet } from '@/components/ui/FilterSheet';
 import { Pagination } from '@/components/ui/Pagination';
+import { SpBackBar } from '@/components/ui/SpBackBar';
+import { useIsSp } from '@/hooks/useIsSp';
 
 import { fetchNotices } from '../api';
 import { NOTICE_STATUS, PAGE_SIZE } from '../constants';
@@ -16,6 +19,8 @@ import type { NoticeCase, NoticeGroupBy, NoticePeriod, NoticeStatusFilter, Notic
 import { daysUntil, fmtDate, fmtMonth } from '../utils';
 import { EditNoticeDialog } from './EditNoticeDialog';
 import { NoticeDetail } from './NoticeDetail';
+import { NoticeStats } from './NoticeStats';
+import { NoticeToolbar } from './NoticeToolbar';
 import { SendNoticesDialog } from './SendNoticesDialog';
 import { TemplateSettingsDialog } from './TemplateSettingsDialog';
 
@@ -46,6 +51,23 @@ export function NoticesPage({ onToast }: NoticesPageProps) {
 
   // 画面上の状態変更の上書き（id -> status）。未永続化のためリロードで消える。
   const [statusOverrides, setStatusOverrides] = React.useState<Map<string, NoticeStatusKey>>(new Map());
+
+  // SP 専用: 詳細の全画面表示・フィルタシートの開閉。
+  const isSp = useIsSp();
+  const [detailOpen, setDetailOpen] = React.useState(false);
+  const [filterOpen, setFilterOpen] = React.useState(false);
+
+  // SP で詳細を開いた瞬間、スクロール位置を先頭へ戻す（一覧の scrollTop 引き継ぎ防止）。
+  // 実スクロールコンテナは .dash-main だが、判別に依存しないよう window も併せて 0 にする。
+  React.useEffect(() => {
+    if (!isSp || !detailOpen) return;
+    const id = requestAnimationFrame(() => {
+      const main = document.querySelector('.dash-main');
+      if (main) main.scrollTop = 0;
+      window.scrollTo(0, 0);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [isSp, detailOpen]);
 
   // 一覧取得。期間フィルタは monthsAhead としてサーバへ渡す。
   React.useEffect(() => {
@@ -171,8 +193,33 @@ export function NoticesPage({ onToast }: NoticesPageProps) {
 
   const retry = () => setReloadToken((t) => t + 1);
 
+  // フィルタが1つでも既定から外れているか（SP のフィルタアイコンにドット表示するため）。
+  const hasActiveFilter = period !== '1y' || statusFilter !== 'all' || groupBy !== 'month';
+  // SP 戻るバーのタイトル用に、選択中の戒名を引く。
+  const selectedKaimyo = detail?.kaimyo ?? '';
+
+  // フィルタ群（デスクトップはツールバー内、SP はシート内に同じものを描画）。
+  const filtersNode = (
+    <NoticeToolbar
+      period={period}
+      statusFilter={statusFilter}
+      groupBy={groupBy}
+      onChangePeriod={setPeriod}
+      onChangeStatus={setStatusFilter}
+      onChangeGroupBy={setGroupBy}
+    />
+  );
+
+  // SP のフィルタシート下部に「テンプレート設定」導線を置く（ヘッダ非表示で消えるため）。
+  const filterFooter = (
+    <button className="btn ghost" type="button" style={{ width: '100%', justifyContent: 'center' }} onClick={() => { setFilterOpen(false); setShowTemplates(true); }}>
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>
+      テンプレート設定
+    </button>
+  );
+
   return (
-    <div className="page-shell notices-page">
+    <div className={'page-shell notices-page' + (isSp && detailOpen ? ' sp-detail-open' : '')}>
       <div className="page-head">
         <div>
           <h1>年忌案内の自動集計</h1>
@@ -186,63 +233,26 @@ export function NoticesPage({ onToast }: NoticesPageProps) {
         </div>
       </div>
 
-      <div className="notice-stats">
-        <div className="nstat tot">
-          <div className="nstat-l">該当年忌</div>
-          <div className="nstat-v">{stats.total}<span className="nstat-u">件</span></div>
-        </div>
-        <div className="nstat pending">
-          <div className="nstat-l">未送付</div>
-          <div className="nstat-v">{stats.pending}<span className="nstat-u">件</span></div>
-          <div className="nstat-meter"><div className="nstat-fill pend" style={{width: stats.total ? `${stats.pending/stats.total*100}%` : '0'}}></div></div>
-        </div>
-        <div className="nstat sent">
-          <div className="nstat-l">送付済</div>
-          <div className="nstat-v">{stats.sent}<span className="nstat-u">件</span></div>
-          <div className="nstat-meter"><div className="nstat-fill snt" style={{width: stats.total ? `${stats.sent/stats.total*100}%` : '0'}}></div></div>
-        </div>
-        <div className="nstat conf">
-          <div className="nstat-l">出席確認済</div>
-          <div className="nstat-v">{stats.confirmed}<span className="nstat-u">件</span></div>
-          <div className="nstat-meter"><div className="nstat-fill cnf" style={{width: stats.total ? `${stats.confirmed/stats.total*100}%` : '0'}}></div></div>
-        </div>
-      </div>
+      <NoticeStats stats={stats} />
 
       <div className="notice-toolbar">
         <div className="search-wrap" style={{flex: '0 0 280px'}}>
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="戒名・俗名・家名で検索" />
         </div>
-        <div className="nt-group">
-          <label>対象期間</label>
-          <div className="seg">
-            {[
-              { k: 'next3m', l: '今後3ヶ月' },
-              { k: '6m',     l: '今後6ヶ月' },
-              { k: '1y',     l: '今後1年' },
-            ].map(o => (
-              <button key={o.k} className={'seg-btn' + (period === o.k ? ' on' : '')} onClick={() => setPeriod(o.k as NoticePeriod)}>{o.l}</button>
-            ))}
-          </div>
-        </div>
-        <div className="nt-group">
-          <label>状態</label>
-          <select className="input-plain" style={{height: 32}} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as NoticeStatusFilter)}>
-            <option value="all">すべて</option>
-            <option value="pending">未送付</option>
-            <option value="sent">送付済</option>
-            <option value="confirmed">出席確認済</option>
-            <option value="declined">欠席連絡</option>
-          </select>
-        </div>
-        <div className="nt-group">
-          <label>並び順</label>
-          <select className="input-plain" style={{height: 32}} value={groupBy} onChange={(e) => setGroupBy(e.target.value as NoticeGroupBy)}>
-            <option value="month">月別</option>
-            <option value="family">家別</option>
-            <option value="status">状態別</option>
-          </select>
-        </div>
+        {isSp && (
+          <button className="sp-filter-btn" type="button" aria-label="絞り込み" onClick={() => setFilterOpen(true)}>
+            <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            {hasActiveFilter && <span className="sp-filter-dot" />}
+          </button>
+        )}
+        {isSp ? (
+          <FilterSheet open={filterOpen} onClose={() => setFilterOpen(false)} count={`${stats.total}件`} footer={filterFooter}>
+            {filtersNode}
+          </FilterSheet>
+        ) : (
+          filtersNode
+        )}
       </div>
 
       {selected.size > 0 && (
@@ -304,7 +314,7 @@ export function NoticesPage({ onToast }: NoticesPageProps) {
                     return (
                       <div key={c.id}
                            className={'nl-row' + (detail?.id === c.id ? ' selected' : '') + (selected.has(c.id) ? ' checked' : '')}
-                           onClick={() => setDetailId(c.id)}>
+                           onClick={() => { setDetailId(c.id); setDetailOpen(true); }}>
                         <label className="checkbox-cell" onClick={(e) => e.stopPropagation()}>
                           <input type="checkbox" checked={selected.has(c.id)} onChange={() => toggle(c.id)} />
                         </label>
@@ -356,6 +366,10 @@ export function NoticesPage({ onToast }: NoticesPageProps) {
             </>
           )}
         </div>
+
+        {isSp && detailOpen && (
+          <SpBackBar title={selectedKaimyo} onBack={() => setDetailOpen(false)} />
+        )}
 
         <NoticeDetail c={detail} onEdit={() => setEditOpen(true)} onToast={onToast} />
       </div>
