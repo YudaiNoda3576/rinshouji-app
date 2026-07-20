@@ -456,6 +456,8 @@
    ============================================================ */
 @media (max-width: 640px) {
   .schedule-detail { display: none !important; }
+  /* SP ではタイトル・説明文を隠す（他画面と統一。head-actions の「今日に戻る」は残す） */
+  .schedule-page .page-head > div:not(.head-actions) { display: none; }
   .schedule-page .head-actions .btn.primary { display: none; }
   .schedule-page .head-actions .btn.ghost { flex: 1; }
 
