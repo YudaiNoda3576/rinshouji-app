@@ -35,7 +35,7 @@ export interface ScheduleEvent {
 }
 
 // カレンダーの表示モード。
-export type ViewMode = 'day' | 'week' | 'month';
+export type ViewMode = 'day' | 'week' | 'month' | 'agenda';
 
 // 新規/編集ダイアログのモード。
 export type ScheduleDialogMode = 'edit' | 'new';
