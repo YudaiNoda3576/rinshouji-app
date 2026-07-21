@@ -7,7 +7,9 @@ import { useEventKinds } from '../hooks';
 import { MONTH_NAMES, SCHEDULE_EVENTS_INITIAL, TODAY_ISO } from '../constants';
 import { kindMapOf, minutesFromTime, parseISO } from '../utils';
 import { MonthView } from './MonthView';
+import { MonthChips } from './MonthChips';
 import { TimeGridView } from './TimeGridView';
+import { AgendaView } from './AgendaView';
 import { ScheduleDetail } from './ScheduleDetail';
 import { EventPreviewModal } from './EventPreviewModal';
 import { NewScheduleDialog } from './NewScheduleDialog';
@@ -28,6 +30,7 @@ const VIEW_OPTIONS: { k: ViewMode; l: string }[] = [
   { k: 'day', l: '日' },
   { k: 'week', l: '週' },
   { k: 'month', l: '月' },
+  { k: 'agenda', l: 'スケジュール' },
 ];
 
 export function SchedulePage({ onOpenNew, onOpenSettings }: SchedulePageProps) {
@@ -113,6 +116,13 @@ export function SchedulePage({ onOpenNew, onOpenSettings }: SchedulePageProps) {
   };
   const goToday = () => {setAnchor(parseISO(TODAY_ISO));setSelectedDate(TODAY_ISO);};
 
+  // SP: モバイルトップバーの「今日」アイコン (Dashboard) から戻る
+  React.useEffect(() => {
+    const h = () => {setAnchor(parseISO(TODAY_ISO));setSelectedDate(TODAY_ISO);};
+    window.addEventListener('schedule:go-today', h);
+    return () => window.removeEventListener('schedule:go-today', h);
+  }, []);
+
   // ---------- title ----------
   const title = React.useMemo(() => {
     if (view === 'day') {
@@ -180,6 +190,8 @@ export function SchedulePage({ onOpenNew, onOpenSettings }: SchedulePageProps) {
         </div>
       </div>
 
+      {isSp && view === 'month' && <MonthChips anchor={anchor} setAnchor={setAnchor} />}
+
       <div className="schedule-body">
         <div className="card cal-card">
           {view === 'month' &&
@@ -190,6 +202,9 @@ export function SchedulePage({ onOpenNew, onOpenSettings }: SchedulePageProps) {
           }
           {view === 'day' &&
           <TimeGridView days={1} startDate={anchor} km={km} selectedDate={selectedDate} setSelectedDate={setSelectedDate} setSelectedId={setSelectedId} selectedId={selectedId} eventsForDate={eventsForDate} moveEvent={moveEvent} isSp={isSp} setPreviewEventId={setPreviewEventId} />
+          }
+          {view === 'agenda' &&
+          <AgendaView anchor={anchor} km={km} selectedDate={selectedDate} setSelectedDate={setSelectedDate} selectedId={selectedId} setSelectedId={setSelectedId} eventsForDate={eventsForDate} isSp={isSp} setPreviewEventId={setPreviewEventId} />
           }
         </div>
 

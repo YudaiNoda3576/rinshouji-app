@@ -64,7 +64,7 @@ export function TimeGridView({
 
   return (
     <div className="tg-wrap">
-      <div className="tg-head" style={{ gridTemplateColumns: `60px repeat(${days}, 1fr)` }}>
+      <div className="tg-head" style={{ '--days': days, gridTemplateColumns: `60px repeat(${days}, 1fr)` } as React.CSSProperties}>
         <div className="tg-corner"></div>
         {dates.map((d) => {
           const iso = isoFromDate(d);
@@ -81,7 +81,7 @@ export function TimeGridView({
         })}
       </div>
 
-      <div className="tg-body" style={{ gridTemplateColumns: `60px repeat(${days}, 1fr)` }}>
+      <div className="tg-body" style={{ '--days': days, gridTemplateColumns: `60px repeat(${days}, 1fr)` } as React.CSSProperties}>
         {/* hour ruler */}
         <div className="tg-hours">
           {hours.map((h) =>

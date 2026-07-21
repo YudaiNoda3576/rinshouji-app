@@ -21,3 +21,6 @@ scripts/migrate/report/
 
 # Logs
 *.log
+
+# VRT 実行結果（比較・撮影のたびに再生成される）
+scripts/vrt/output/
