@@ -233,6 +233,8 @@ function SchedulePage({ onOpenNew, onOpenSettings }) {
         <div className="cal-nav">
           <button className="cal-nav-btn" onClick={navPrev} aria-label="前へ"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg></button>
           <div className="cal-title">{title}</div>
+          {/* SP専用: page-head 非表示時の「今日に戻る」 */}
+          <button className="cal-today-btn" type="button" onClick={goToday}>今日</button>
           <button className="cal-nav-btn" onClick={navNext} aria-label="次へ"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg></button>
         </div>
         <div className="cal-view-switch">

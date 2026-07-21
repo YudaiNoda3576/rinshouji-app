@@ -173,10 +173,19 @@
    SCHEDULE — calendar compaction
    ============================================================ */
 @media (max-width: 640px) {
+  /* 見出しはモバイルトップバーと重複するため非表示。「今日に戻る」は cal-nav 内へ移動 */
+  .schedule-page .page-head { display: none; }
   .cal-toolbar { flex-direction: column; align-items: stretch; gap: 10px; padding: 0; }
-  .cal-nav { justify-content: space-between; padding: 0 4px; }
+  .cal-nav { justify-content: space-between; gap: 6px; padding: 0 4px; }
   .cal-nav-btn { width: 36px; height: 36px; }
   .cal-title { font-size: 16px; min-width: 0; flex: 1; }
+  .cal-today-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    flex: none; height: 36px; padding: 0 12px;
+    border: 1px solid var(--border-default); border-radius: 6px;
+    background: #fff; color: var(--fg1);
+    font-size: 12px; font-weight: 500; font-family: inherit; cursor: pointer;
+  }
   .cal-view-switch { align-self: stretch; }
   .cv-btn { flex: 1; padding: 0 6px; min-height: 32px; height: 32px; font-size: 11px; white-space: nowrap; }
   .cal-filters { justify-content: flex-start; overflow-x: auto; padding-bottom: 4px; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; gap: 4px; }
@@ -418,8 +427,6 @@
    ============================================================ */
 @media (max-width: 640px) {
   .schedule-detail { display: none !important; }
-  .schedule-page .head-actions .btn.primary { display: none; }
-  .schedule-page .head-actions .btn.ghost { flex: 1; }
 
   .fab-add {
     position: fixed; bottom: 20px; right: 20px;
