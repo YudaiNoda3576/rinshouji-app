@@ -112,7 +112,7 @@ function SchedulePage({ onOpenNew, onOpenSettings }) {
   const [previewEventId, setPreviewEventId] = React.useState(null);
   // anchor date — current week/day/month is computed from this
   const [anchor, setAnchor] = React.useState(() => parseISO(TODAY_ISO));
-  const [view, setView] = React.useState('week'); // day / week / month
+  const [view, setView] = React.useState('week'); // day / week / month / agenda
   const [selectedDate, setSelectedDate] = React.useState(TODAY_ISO);
   const [selectedId, setSelectedId] = React.useState('S-001');
   const [kindFilter, setKindFilter] = React.useState('all');
@@ -239,7 +239,8 @@ function SchedulePage({ onOpenNew, onOpenSettings }) {
           {[
           { k: 'day', l: '日' },
           { k: 'week', l: '週' },
-          { k: 'month', l: '月' }].
+          { k: 'month', l: '月' },
+          { k: 'agenda', l: 'スケジュール' }].
           map((o) =>
           <button key={o.k} className={'cv-btn' + (view === o.k ? ' on' : '')} onClick={() => setView(o.k)}>{o.l}</button>
           )}
@@ -263,16 +264,21 @@ function SchedulePage({ onOpenNew, onOpenSettings }) {
         </div>
       </div>
 
+      {isSp && view === 'month' && <MonthChips anchor={anchor} setAnchor={setAnchor} />}
+
       <div className="schedule-body">
         <div className="card cal-card">
           {view === 'month' &&
-          <MonthView anchor={anchor} km={km} selectedDate={selectedDate} setSelectedDate={setSelectedDate} setSelectedId={setSelectedId} eventsForDate={eventsForDate} moveEvent={moveEvent} />
+          <MonthView anchor={anchor} km={km} selectedDate={selectedDate} setSelectedDate={setSelectedDate} setSelectedId={setSelectedId} eventsForDate={eventsForDate} moveEvent={moveEvent} isSp={isSp} setPreviewEventId={setPreviewEventId} />
           }
           {view === 'week' &&
-          <TimeGridView days={7} startDate={range.start} km={km} selectedDate={selectedDate} setSelectedDate={setSelectedDate} setSelectedId={setSelectedId} selectedId={selectedId} eventsForDate={eventsForDate} moveEvent={moveEvent} />
+          <TimeGridView days={7} startDate={range.start} km={km} selectedDate={selectedDate} setSelectedDate={setSelectedDate} setSelectedId={setSelectedId} selectedId={selectedId} eventsForDate={eventsForDate} moveEvent={moveEvent} isSp={isSp} setPreviewEventId={setPreviewEventId} />
           }
           {view === 'day' &&
-          <TimeGridView days={1} startDate={anchor} km={km} selectedDate={selectedDate} setSelectedDate={setSelectedDate} setSelectedId={setSelectedId} selectedId={selectedId} eventsForDate={eventsForDate} moveEvent={moveEvent} />
+          <TimeGridView days={1} startDate={anchor} km={km} selectedDate={selectedDate} setSelectedDate={setSelectedDate} setSelectedId={setSelectedId} selectedId={selectedId} eventsForDate={eventsForDate} moveEvent={moveEvent} isSp={isSp} setPreviewEventId={setPreviewEventId} />
+          }
+          {view === 'agenda' &&
+          <AgendaView anchor={anchor} km={km} selectedDate={selectedDate} setSelectedDate={setSelectedDate} selectedId={selectedId} setSelectedId={setSelectedId} eventsForDate={eventsForDate} isSp={isSp} setPreviewEventId={setPreviewEventId} />
           }
         </div>
 
@@ -365,8 +371,33 @@ function EventPreviewModal({ event, km, onClose, onEdit }) {
   );
 }
 
+// ---------- Month chips (SP限定: 月切替) ----------
+function MonthChips({ anchor, setAnchor }) {
+  const trackRef = React.useRef(null);
+  const currentMonth = anchor.getMonth();
+
+  React.useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const on = track.querySelector('.cal-mchip.on');
+    if (on) on.scrollIntoView({ inline: 'center', block: 'nearest' });
+  }, [anchor.getFullYear(), currentMonth]);
+
+  return (
+    <div className="cal-month-chips" ref={trackRef}>
+      {MONTH_NAMES.map((label, m) =>
+      <button key={m} type="button"
+      className={'cal-mchip' + (m === currentMonth ? ' on' : '')}
+      onClick={() => setAnchor(new Date(anchor.getFullYear(), m, 1))}>
+        {label}
+      </button>
+      )}
+    </div>);
+
+}
+
 // ---------- Month view ----------
-function MonthView({ anchor, km, selectedDate, setSelectedDate, setSelectedId, eventsForDate, moveEvent }) {
+function MonthView({ anchor, km, selectedDate, setSelectedDate, setSelectedId, eventsForDate, moveEvent, isSp, setPreviewEventId }) {
   const grid = React.useMemo(() => {
     const first = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
     const start = new Date(first);
@@ -439,8 +470,75 @@ function MonthView({ anchor, km, selectedDate, setSelectedDate, setSelectedId, e
 
 }
 
+// ---------- Agenda view (スケジュール: 日付順アガンダリスト) ----------
+function AgendaView({ anchor, km, selectedDate, setSelectedDate, selectedId, setSelectedId, eventsForDate, isSp, setPreviewEventId }) {
+  const year = anchor.getFullYear();
+  const month = anchor.getMonth();
+
+  const days = React.useMemo(() => {
+    const lastDate = new Date(year, month + 1, 0).getDate();
+    const list = [];
+    for (let d = 1; d <= lastDate; d++) {
+      const iso = isoDate(year, month, d);
+      const evs = eventsForDate(iso);
+      if (evs.length) list.push({ iso, date: new Date(year, month, d), evs });
+    }
+    return list;
+  }, [year, month, eventsForDate]);
+
+  if (!days.length) {
+    return <div className="empty">この月に予定はありません。</div>;
+  }
+
+  return (
+    <div className="agd-list">
+      {days.map((day) => {
+        const dow = day.date.getDay();
+        const isToday = day.iso === TODAY_ISO;
+        const isSelectedDay = day.iso === selectedDate;
+        return (
+          <div key={day.iso} className={'agd-day' + (isSelectedDay ? ' selected' : '')}>
+            <div className={'agd-day-badge' + (isToday ? ' today' : '')}>
+              <span className={'agd-dow' + (dow === 0 ? ' sun' : '') + (dow === 6 ? ' sat' : '')}>{WEEKDAYS[dow]}</span>
+              <span className="agd-date-num">{day.date.getDate()}</span>
+            </div>
+            <ul className="agd-events">
+              {day.evs.map((e) => {
+                const k = getKind(km, e.kind);
+                const isSel = e.id === selectedId;
+                return (
+                  <li key={e.id}
+                  className={'agd-item' + (isSel ? ' selected' : '')}
+                  onClick={() => {
+                    setSelectedDate(day.iso);
+                    setSelectedId(e.id);
+                    if (isSp) setPreviewEventId(e.id);
+                  }}>
+                    <div className="agd-time">{e.time}〜{addMinutes(e.time, e.dur)}</div>
+                    <div className="agd-rail" style={{ background: k.color }}></div>
+                    <div className="agd-main">
+                      <div className="agd-title-row">
+                        <span className="agd-title">{e.title}</span>
+                        <span className="sd-kind-chip" style={{ background: k.tint, color: k.dark }}>{k.label}</span>
+                      </div>
+                      <div className="agd-meta">
+                        {e.priest && <span className="agd-priest">{e.priest}</span>}
+                        {e.loc && <span className="agd-loc">{e.loc}</span>}
+                      </div>
+                    </div>
+                  </li>);
+
+              })}
+            </ul>
+          </div>);
+
+      })}
+    </div>);
+
+}
+
 // ---------- Day / Week time-grid view ----------
-function TimeGridView({ days, startDate, km, selectedDate, setSelectedDate, setSelectedId, selectedId, eventsForDate, moveEvent }) {
+function TimeGridView({ days, startDate, km, selectedDate, setSelectedDate, setSelectedId, selectedId, eventsForDate, moveEvent, isSp, setPreviewEventId }) {
   const dates = [];
   for (let i = 0; i < days; i++) {
     const d = new Date(startDate);

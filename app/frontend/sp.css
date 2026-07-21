@@ -178,7 +178,7 @@
   .cal-nav-btn { width: 36px; height: 36px; }
   .cal-title { font-size: 16px; min-width: 0; flex: 1; }
   .cal-view-switch { align-self: stretch; }
-  .cv-btn { flex: 1; padding: 0 8px; min-height: 32px; height: 32px; font-size: 12px; }
+  .cv-btn { flex: 1; padding: 0 6px; min-height: 32px; height: 32px; font-size: 11px; white-space: nowrap; }
   .cal-filters { justify-content: flex-start; overflow-x: auto; padding-bottom: 4px; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; gap: 4px; }
   .cal-chip { flex: none; height: 28px; padding: 0 10px; font-size: 11px; }
   .cal-priest-filter { width: 100%; }
@@ -187,19 +187,25 @@
   .schedule-detail { position: static; max-height: none; }
   .cal-card { border-radius: 8px; }
 
-  /* ===== Month view — Google-Calendar-mobile style: tiny colored bars only ===== */
-  .cal-grid { grid-auto-rows: minmax(64px, 1fr); }
+  /* ===== Month chips (月切替) — horizontal scroll ===== */
+  .cal-month-chips {
+    display: flex; gap: 6px; overflow-x: auto; padding: 0 2px 8px;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .cal-month-chips::-webkit-scrollbar { display: none; }
+  .cal-mchip {
+    flex: none; height: 32px; padding: 0 14px; border-radius: 9999px;
+    border: 1px solid var(--border-default); background: #fff; color: var(--fg2);
+    font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit;
+  }
+  .cal-mchip.on { background: var(--fg1); color: #fff; border-color: var(--fg1); }
+
+  /* ===== Month view — Google-Calendar-mobile style: colored chip + title ===== */
+  .cal-grid { grid-auto-rows: minmax(80px, 1fr); }
   .cal-cell { padding: 4px 2px 2px; gap: 2px; }
   .cal-cell-d {
     font-size: 12px; padding: 0; justify-content: center;
     position: relative;
-  }
-  .cal-cell.today .cal-cell-d {
-    color: #fff;
-  }
-  .cal-cell.today .cal-cell-d > :first-child,
-  .cal-cell.today .cal-cell-d {
-    /* circle the date number */
   }
   .cal-cell.today .cal-cell-d {
     display: inline-flex; align-self: center;
@@ -210,12 +216,14 @@
   .cal-today-mark { display: none; }
   .cal-cell-events { gap: 2px; padding: 0 2px; }
   .cal-evt {
-    padding: 0; height: 4px; border-radius: 2px;
+    display: block; padding: 1px 4px; min-height: 15px; border-radius: 3px;
     border-left: 0 !important;
     overflow: hidden;
-    background: var(--evt-bg, var(--temple-blue)) !important;
+    background: var(--evt-bg) !important; color: #fff !important;
+    font-size: 9px;
   }
-  .cal-evt .evt-t, .cal-evt .evt-l, .cal-evt .evt-p { display: none; }
+  .cal-evt .evt-t, .cal-evt .evt-p { display: none; }
+  .cal-evt .evt-l { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .cal-evt-more { font-size: 9px; color: var(--fg2); padding: 0 4px; text-align: left; }
   .cal-wd { padding: 6px 0; font-size: 10px; }
 
@@ -244,6 +252,13 @@
   .sd-title { font-size: 13px; }
   .sd-detail { padding: 14px 16px; }
   .sd-detail-head-top { gap: 8px; flex-wrap: wrap; }
+
+  /* ===== Agenda view (スケジュール) — SP圧縮 ===== */
+  .agd-day { grid-template-columns: 40px 1fr !important; gap: 8px !important; padding: 10px 4px !important; }
+  .agd-date-num { font-size: 15px; }
+  .agd-time { font-size: 10px; }
+  .agd-title { font-size: 13px; }
+  .agd-meta { font-size: 11px; }
 
   .kind-picker { grid-template-columns: repeat(2, 1fr); }
 }
@@ -395,7 +410,6 @@
   .btn.btn-sm, .btn.sm { min-height: 32px; }
   .cal-nav-btn { width: 40px; height: 40px; }
   .zoom-btn { width: 36px; height: 36px; }
-  .cal-evt { min-height: 0; }
 }
 
 
