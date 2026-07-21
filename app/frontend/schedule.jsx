@@ -563,7 +563,7 @@ function TimeGridView({ days, startDate, km, selectedDate, setSelectedDate, setS
 
   return (
     <div className="tg-wrap">
-      <div className="tg-head" style={{ gridTemplateColumns: `60px repeat(${days}, 1fr)` }}>
+      <div className="tg-head" style={{ '--days': days, gridTemplateColumns: `60px repeat(${days}, 1fr)` }}>
         <div className="tg-corner"></div>
         {dates.map((d) => {
           const iso = isoFromDate(d);
@@ -580,7 +580,7 @@ function TimeGridView({ days, startDate, km, selectedDate, setSelectedDate, setS
         })}
       </div>
 
-      <div className="tg-body" style={{ gridTemplateColumns: `60px repeat(${days}, 1fr)` }}>
+      <div className="tg-body" style={{ '--days': days, gridTemplateColumns: `60px repeat(${days}, 1fr)` }}>
         {/* hour ruler */}
         <div className="tg-hours">
           {hours.map((h) =>

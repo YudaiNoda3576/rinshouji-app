@@ -18,3 +18,6 @@ node_modules/
 
 # Logs
 *.log
+
+# VRT実行結果 (ベースラインはコミットする)
+scripts/vrt/output/

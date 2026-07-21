@@ -1,0 +1,16 @@
+{
+  "name": "rinshouji-vrt",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "フロントエンド ビジュアルリグレッションテスト (VRT) ハーネス",
+  "scripts": {
+    "vrt": "node run.mjs",
+    "vrt:update": "node run.mjs --update"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^24.10.2",
+    "pixelmatch": "^7.0.0",
+    "pngjs": "^7.0.0"
+  }
+}
