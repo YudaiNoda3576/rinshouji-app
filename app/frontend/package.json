@@ -1,0 +1,31 @@
+{
+  "name": "rinshouji-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "寺務管理システム — Temple Administration System (React + Vite + TypeScript)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b --noEmit",
+    "storybook": "storybook dev -p 8124",
+    "build-storybook": "storybook build"
+  },
+  "dependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@storybook/addon-a11y": "10.4.6",
+    "@storybook/addon-docs": "10.4.6",
+    "@storybook/react-vite": "10.4.6",
+    "@types/node": "22.10.2",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "@vitejs/plugin-react": "4.3.4",
+    "storybook": "10.4.6",
+    "typescript": "5.6.3",
+    "vite": "5.4.11"
+  }
+}

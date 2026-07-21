@@ -1,0 +1,16 @@
+<!doctype html>
+<!-- @dsCard group="Spacing" name="Shadow scale" subtitle="none · sm (default) · lg (drawer) · xl (auth card)" viewport="700x180" --><html><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css"><style>
+  body{margin:0;padding:32px;background:#F9FAFB;color:var(--fg1)}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;align-items:end}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:14px}
+  .box{width:96px;height:64px;background:#fff;border:1px solid var(--border-default);border-radius:8px}
+  .name{font-family:var(--font-mono);font-size:11px;color:var(--fg2);text-align:center}
+  .name b{display:block;font-family:var(--font-sans);color:var(--fg1);margin-bottom:2px}
+</style></head><body>
+  <div class="grid">
+    <div class="cell"><div class="box" style="box-shadow:none"></div><div class="name"><b>none</b>flat surfaces</div></div>
+    <div class="cell"><div class="box" style="box-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05)"></div><div class="name"><b>shadow-sm</b>cards (default)</div></div>
+    <div class="cell"><div class="box" style="box-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1),0 4px 6px -4px rgb(0 0 0 / 0.1)"></div><div class="name"><b>shadow-lg</b>mobile drawer</div></div>
+    <div class="cell"><div class="box" style="box-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1),0 8px 10px -6px rgb(0 0 0 / 0.1)"></div><div class="name"><b>shadow-xl</b>auth card</div></div>
+  </div>
+</body></html>

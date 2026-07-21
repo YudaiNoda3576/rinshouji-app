@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>寺務管理システム — 疎通確認</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+        display: grid;
+        place-items: center;
+        min-height: 100vh;
+        margin: 0;
+        background: #f5f3ee;
+        color: #2b2b2b;
+      }
+      .card {
+        background: #fff;
+        padding: 2.5rem 3rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+        text-align: center;
+      }
+      h1 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #6b6b6b;
+        margin: 0 0 1rem;
+      }
+      #message {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0 0 1.5rem;
+        min-height: 2.4rem;
+      }
+      button {
+        font: inherit;
+        padding: 0.6rem 1.4rem;
+        border: none;
+        border-radius: 8px;
+        background: #8a6d3b;
+        color: #fff;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #75592e;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>バックエンド疎通確認</h1>
+      <p id="message">読み込み中…</p>
+      <button type="button" id="reload">再取得</button>
+    </div>
+
+    <script>
+      async function fetchHello() {
+        const el = document.getElementById("message");
+        el.textContent = "読み込み中…";
+        try {
+          const res = await fetch("/api/hello");
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+          const data = await res.json();
+          el.textContent = data.message;
+        } catch (err) {
+          el.textContent = `エラー: ${err.message}`;
+        }
+      }
+
+      document.getElementById("reload").addEventListener("click", fetchHello);
+      fetchHello();
+    </script>
+  </body>
+</html>

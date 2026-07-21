@@ -1,0 +1,114 @@
+# 寺務管理システム ローカル開発環境
+# frontend (nginx) / backend (Hono + Node) / db (PostgreSQL) を一括起動する。
+#   起動:   docker compose up -d --build
+#   停止:   docker compose down
+#   ログ:   docker compose logs -f
+#
+# Storybook はコンポーネントカタログ用の別サービス（profile: storybook）。
+# 既定の `up` では起動せず、明示的に指定したときだけ起動する。
+#   起動:   docker compose up -d storybook
+#   停止:   docker compose stop storybook
+#
+# 接続先:
+#   - フロントエンド:  http://localhost:8123
+#   - バックエンドAPI: http://localhost:3000/api/hello
+#   - PostgreSQL:      localhost:5432
+#   - Storybook:       http://localhost:8124
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: rinshouji-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-rinshouji}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rinshouji}
+      POSTGRES_DB: ${POSTGRES_DB:-rinshouji}
+      TZ: Asia/Tokyo
+      PGTZ: Asia/Tokyo
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      # ./db/init 配下の *.sql / *.sh は初回起動時のみ自動実行される。
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-rinshouji} -d ${POSTGRES_DB:-rinshouji}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./app/backend
+      args:
+        # TLS 傍受環境向け（開発専用）。詳細は app/backend/Dockerfile のコメント参照。
+        NPM_STRICT_SSL: "false"
+    container_name: rinshouji-backend
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      # アプリは現状 DB を未使用だが、接続情報を先に渡しておく。
+      DATABASE_URL: postgres://${POSTGRES_USER:-rinshouji}:${POSTGRES_PASSWORD:-rinshouji}@db:5432/${POSTGRES_DB:-rinshouji}
+      TZ: Asia/Tokyo
+    ports:
+      - "${BACKEND_PORT:-3000}:3000"
+    volumes:
+      # ソースをマウントして tsx watch によるホットリロードを有効化する。
+      - ./app/backend:/app
+      # node_modules はコンテナ内のものを優先し、ホストで上書きしない。
+      - backend-node-modules:/app/node_modules
+    # named volume がイメージ内の node_modules を隠すため、依存を追加した際に
+    # 古いボリュームのままだと ERR_MODULE_NOT_FOUND になる。起動時に lockfile と
+    # 同期してから dev サーバを立ち上げる（同期済みなら数秒で抜ける）。
+    command: >
+      sh -c "npm install --no-audit --no-fund;
+             npm run dev"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./app/frontend
+      args:
+        # TLS 傍受環境向け（開発専用）。詳細は app/backend/Dockerfile のコメント参照。
+        NPM_STRICT_SSL: "false"
+    container_name: rinshouji-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-8123}:80"
+    # Vite でビルドした静的成果物を nginx が配信する（イメージに同梱）。
+    # 変更を反映するには `docker compose up -d --build frontend` で再ビルドする。
+    depends_on:
+      - backend
+
+  storybook:
+    # コンポーネントカタログ（Storybook dev サーバー）。
+    # backend と同様にソースをマウントし、node_modules はコンテナ側を使う。
+    # profile を付けているため、既定の `docker compose up` では起動しない。
+    #   起動: docker compose up -d storybook   （サービス名を明示すれば profile でも起動する）
+    image: node:24-alpine
+    container_name: rinshouji-storybook
+    profiles: ["storybook"]
+    working_dir: /app
+    environment:
+      TZ: Asia/Tokyo
+    ports:
+      # frontend(8123) の隣。6006 は他プロジェクトと衝突しやすいため避ける。
+      - "${STORYBOOK_PORT:-8124}:8124"
+    volumes:
+      # ソースをマウントして Story 変更のホットリロードを有効化する。
+      - ./app/frontend:/app
+      # node_modules はコンテナ内のもの（Linux ネイティブ）を優先する。
+      - frontend-node-modules:/app/node_modules
+    # 初回（node_modules 空）のみ依存をインストールしてから dev サーバーを起動する。
+    # コンテナ外からアクセスするため 0.0.0.0 で待ち受ける。
+    command: >
+      sh -c "[ -x node_modules/.bin/storybook ] || npm install --no-audit --no-fund;
+             npm run storybook -- --host 0.0.0.0 --ci"
+
+volumes:
+  db-data:
+  backend-node-modules:
+  frontend-node-modules:

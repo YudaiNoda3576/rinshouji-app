@@ -9,5 +9,15 @@
 # Node (if tooling is added later)
 node_modules/
 
+# Env
+.env
+.env.local
+
+# 個人情報を含む元データ（誤コミット防止）
+.claude/
+
+# 移行レポート（警告リストに実データの原文を含むため）
+scripts/migrate/report/
+
 # Logs
 *.log

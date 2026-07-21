@@ -1,0 +1,24 @@
+{
+  "name": "rinshouji-migrate",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Excel由来CSV(檀信徒名簿/過去帳)からPostgreSQLへの移行スクリプト",
+  "type": "module",
+  "scripts": {
+    "migrate": "tsx src/cli.ts --all",
+    "migrate:import": "tsx src/cli.ts --import",
+    "migrate:transform": "tsx src/cli.ts --transform",
+    "migrate:parties": "tsx src/cli.ts --parties",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "csv-parse": "^5.5.6",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/pg": "^8.11.10",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
