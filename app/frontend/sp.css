@@ -6,6 +6,9 @@
 .mobile-topbar { display: none; }
 .mobile-nav-overlay { display: none; }
 .mobile-nav-close { display: none; }
+/* トップバーの「今日」アイコン (予定管理) は 640px 以下でのみ表示。
+   641〜880px は page-head の「今日に戻る」が見えているため出さない */
+.mobile-today-btn { display: none; }
 
 @media (max-width: 880px) {
   .mobile-topbar {
@@ -173,19 +176,21 @@
    SCHEDULE — calendar compaction
    ============================================================ */
 @media (max-width: 640px) {
-  /* 見出しはモバイルトップバーと重複するため非表示。「今日に戻る」は cal-nav 内へ移動 */
+  /* 見出しはモバイルトップバーと重複するため非表示。「今日」はトップバーのアイコンへ移動 */
   .schedule-page .page-head { display: none; }
+  .mobile-today-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; flex: none;
+    border: 0; background: transparent; color: var(--fg1);
+    cursor: pointer; border-radius: 6px;
+  }
+  .mobile-today-btn:hover { background: hsl(210 11% 96%); }
+  .mobile-today-btn svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .mobile-today-btn svg text { stroke: none; fill: currentColor; font-size: 10px; font-weight: 600; font-family: inherit; }
   .cal-toolbar { flex-direction: column; align-items: stretch; gap: 10px; padding: 0; }
-  .cal-nav { justify-content: space-between; gap: 6px; padding: 0 4px; }
+  .cal-nav { justify-content: space-between; padding: 0 4px; }
   .cal-nav-btn { width: 36px; height: 36px; }
   .cal-title { font-size: 16px; min-width: 0; flex: 1; }
-  .cal-today-btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    flex: none; height: 36px; padding: 0 12px;
-    border: 1px solid var(--border-default); border-radius: 6px;
-    background: #fff; color: var(--fg1);
-    font-size: 12px; font-weight: 500; font-family: inherit; cursor: pointer;
-  }
   .cal-view-switch { align-self: stretch; }
   .cv-btn { flex: 1; padding: 0 6px; min-height: 32px; height: 32px; font-size: 11px; white-space: nowrap; }
   .cal-filters { justify-content: flex-start; overflow-x: auto; padding-bottom: 4px; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; gap: 4px; }

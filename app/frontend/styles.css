@@ -966,7 +966,6 @@ a { color: inherit; }
 .cal-nav-btn:hover { background: hsl(210 11% 96%); border-color: hsl(215 28% 80%); }
 .cal-nav-btn svg { width: 16px; height: 16px; stroke: var(--fg1); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .cal-title { font-size: 20px; font-weight: 600; color: var(--fg1); font-variant-numeric: tabular-nums; min-width: 160px; text-align: center; }
-.cal-today-btn { display: none; } /* SP専用 (sp.css で表示)。PC は page-head の「今日に戻る」を使う */
 
 .cal-filters { display: flex; gap: 6px; flex-wrap: wrap; }
 

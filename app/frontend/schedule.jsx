@@ -188,6 +188,13 @@ function SchedulePage({ onOpenNew, onOpenSettings }) {
   };
   const goToday = () => {setAnchor(parseISO(TODAY_ISO));setSelectedDate(TODAY_ISO);};
 
+  // SP: モバイルトップバーの「今日」アイコン (dashboard.jsx) から戻る
+  React.useEffect(() => {
+    const h = () => {setAnchor(parseISO(TODAY_ISO));setSelectedDate(TODAY_ISO);};
+    window.addEventListener('schedule:go-today', h);
+    return () => window.removeEventListener('schedule:go-today', h);
+  }, []);
+
   // ---------- title ----------
   const title = React.useMemo(() => {
     if (view === 'day') {
@@ -233,8 +240,6 @@ function SchedulePage({ onOpenNew, onOpenSettings }) {
         <div className="cal-nav">
           <button className="cal-nav-btn" onClick={navPrev} aria-label="前へ"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6" /></svg></button>
           <div className="cal-title">{title}</div>
-          {/* SP専用: page-head 非表示時の「今日に戻る」 */}
-          <button className="cal-today-btn" type="button" onClick={goToday}>今日</button>
           <button className="cal-nav-btn" onClick={navNext} aria-label="次へ"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg></button>
         </div>
         <div className="cal-view-switch">
@@ -894,4 +899,4 @@ function NewScheduleDialog({ open, onClose, onSave, onOpenSettings, mode, initia
 
 }
 
-Object.assign(window, { SchedulePage, NewScheduleDialog });
+Object.assign(window, { SchedulePage, NewScheduleDialog, SCHEDULE_TODAY_ISO: TODAY_ISO });

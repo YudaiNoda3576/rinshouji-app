@@ -40,7 +40,17 @@ function Dashboard({ active, onLogout, onToast, accent, parishVariant }) {
           <div className="mt-brand"><BrandIcon /></div>
           <span>{pageTitle}</span>
         </div>
-        <div className="mobile-spacer" />
+        {page === 'schedule' ?
+        <button className="mobile-today-btn" type="button" aria-label="今日に戻る"
+        onClick={() => window.dispatchEvent(new CustomEvent('schedule:go-today'))}>
+          <svg viewBox="0 0 24 24">
+            <rect width="18" height="18" x="3" y="4" rx="2" />
+            <line x1="16" x2="16" y1="2" y2="6" />
+            <line x1="8" x2="8" y1="2" y2="6" />
+            <text x="12" y="17.5" textAnchor="middle">{window.SCHEDULE_TODAY_ISO ? parseInt(window.SCHEDULE_TODAY_ISO.slice(8), 10) : new Date().getDate()}</text>
+          </svg>
+        </button> :
+        <div className="mobile-spacer" />}
       </div>
 
       {/* Mobile drawer overlay */}
