@@ -23,11 +23,22 @@
 --   cemetery_plots.household_id    -> households.id    : ON DELETE CASCADE
 --   columbarium_units.household_id -> households.id    : ON DELETE CASCADE
 --   districts.parent_id -> districts.id (自己参照)      : ON DELETE RESTRICT（既定）
+--   party_roles.party_id                       -> parties.id            : ON DELETE CASCADE
+--   party_roles.role_type_id                   -> role_types.id         : ON DELETE RESTRICT
+--   household_memberships.party_id             -> parties.id            : ON DELETE CASCADE
+--   household_memberships.household_id         -> households.id         : ON DELETE CASCADE
+--   household_memberships.household_member_id  -> household_members.id  : ON DELETE SET NULL
+--   user_accounts.party_id                     -> parties.id            : ON DELETE RESTRICT
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
 -- 0. 後片付け（依存関係の逆順: 子テーブル -> 親テーブル）
 -- ---------------------------------------------------------------------
+DROP TABLE IF EXISTS user_accounts CASCADE;
+DROP TABLE IF EXISTS household_memberships CASCADE;
+DROP TABLE IF EXISTS party_roles CASCADE;
+DROP TABLE IF EXISTS parties CASCADE;
+DROP TABLE IF EXISTS role_types CASCADE;
 DROP TABLE IF EXISTS columbarium_units CASCADE;
 DROP TABLE IF EXISTS cemetery_plots CASCADE;
 DROP TABLE IF EXISTS deceased_persons CASCADE;
@@ -381,5 +392,243 @@ CREATE INDEX idx_columbarium_units_unit_code ON columbarium_units (unit_code);
 
 CREATE TRIGGER trg_columbarium_units_set_updated_at
     BEFORE UPDATE ON columbarium_units
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
+
+-- =====================================================================
+-- 7. ロール種別（role_types）
+--    業務ロールはテンプレ展開時に寺院ごとに差し替えられる「データ」として
+--    マスタ化する（CHECK 制約にしない）。コードが分岐に使うシステム enum
+--    （party_type / status / permission）は従来どおり VARCHAR + CHECK。
+-- =====================================================================
+CREATE TABLE role_types (
+    id          BIGSERIAL PRIMARY KEY,
+    code        VARCHAR(30)  NOT NULL,
+    label       VARCHAR(50)  NOT NULL,
+    description VARCHAR(255),
+    sort_order  SMALLINT     NOT NULL DEFAULT 0,
+    is_active   BOOLEAN      NOT NULL DEFAULT true,
+    created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT uq_role_types_code UNIQUE (code)
+);
+
+-- シード（テンプレ既定値。他寺院展開時はここを差し替え/追記する）
+INSERT INTO role_types (code, label, description, sort_order) VALUES
+    ('staff',       '寺務員', '寺院の職員・住職等。user_accounts 保有の主対象',              10),
+    ('parishioner', '檀信徒', '檀家・信徒等。household_memberships 経由で世帯に所属',        20),
+    ('vendor',      '出店者', 'マルシェ等イベントの出店者（将来利用）',                        30),
+    ('tenant',      '利用者', '間貸し（スペース貸出）の借主（将来利用）',                      40);
+
+COMMENT ON TABLE role_types IS 'ロール種別: 業務ロールをテンプレ展開時に寺院ごとに差し替え可能なマスタとして保持する（party_type/status/permission等のシステムenumはCHECK制約のまま）';
+COMMENT ON COLUMN role_types.code IS 'ロールコード。party_roles からの参照キー（例 staff/parishioner/vendor/tenant）';
+COMMENT ON COLUMN role_types.label IS 'ロール表示名（日本語）';
+COMMENT ON COLUMN role_types.description IS 'ロールの説明';
+COMMENT ON COLUMN role_types.sort_order IS '表示順';
+COMMENT ON COLUMN role_types.is_active IS '有効フラグ。false は非表示（削除ではなく無効化）';
+
+CREATE TRIGGER trg_role_types_set_updated_at
+    BEFORE UPDATE ON role_types
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
+
+-- =====================================================================
+-- 8. パーティ（parties）
+--    人/組織の統一台帳。origin='import' は household_members から機械生成
+--    される再生成可能な派生データ（読み取り専用）。origin='manual' は手入力
+--    （寺務員・出店者・借主等）で、洗い替え（migrate）で削除してはならない。
+--    檀信徒の連絡先の正は従来どおり households。import 由来 parties の
+--    連絡先カラムはすべて NULL で生成し、parties の連絡先は世帯に属さない
+--    パーティ専用とする。
+-- =====================================================================
+CREATE TABLE parties (
+    id                BIGSERIAL PRIMARY KEY,
+    party_type        VARCHAR(20)  NOT NULL
+                      CHECK (party_type IN ('person', 'organization')),
+    display_name      VARCHAR(100) NOT NULL,
+    display_name_kana VARCHAR(100),
+    email             VARCHAR(254),
+    phone             VARCHAR(20),
+    postal_code       VARCHAR(8),
+    address_1         VARCHAR(255),
+    address_2         VARCHAR(255),
+    origin            VARCHAR(20)  NOT NULL DEFAULT 'manual'
+                      CHECK (origin IN ('manual', 'import')),
+    status            VARCHAR(20)  NOT NULL DEFAULT 'active'
+                      CHECK (status IN ('active', 'inactive', 'deleted')),
+    note              TEXT,
+    created_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE parties IS 'パーティ: 人・組織の統一台帳。origin=import は household_members から機械生成される再生成可能な派生データ（読み取り専用）、origin=manual は手入力（寺務員・出店者・借主等）で洗い替えの対象外';
+COMMENT ON COLUMN parties.party_type IS '種別。person/organization';
+COMMENT ON COLUMN parties.display_name IS '表示名';
+COMMENT ON COLUMN parties.display_name_kana IS '表示名フリガナ';
+COMMENT ON COLUMN parties.email IS 'メールアドレス';
+COMMENT ON COLUMN parties.phone IS '電話番号';
+COMMENT ON COLUMN parties.postal_code IS '郵便番号';
+COMMENT ON COLUMN parties.address_1 IS '住所1';
+COMMENT ON COLUMN parties.address_2 IS '住所2';
+COMMENT ON COLUMN parties.origin IS '生成元。manual=手入力/import=household_membersからの機械生成（再生成可能・読み取り専用）';
+COMMENT ON COLUMN parties.status IS '状態。active/inactive/deleted';
+COMMENT ON COLUMN parties.note IS '備考';
+
+CREATE INDEX idx_parties_display_name ON parties (display_name);
+CREATE INDEX idx_parties_display_name_kana ON parties (display_name_kana);
+CREATE INDEX idx_parties_origin ON parties (origin);
+
+CREATE TRIGGER trg_parties_set_updated_at
+    BEFORE UPDATE ON parties
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
+
+-- =====================================================================
+-- 9. パーティロール（party_roles）
+--    パーティ⇔ロール種別の多対多+有効期間。valid_to IS NULL が「現在有効」。
+--    履歴は valid_to を埋め status='ended' にして行を残す。
+-- =====================================================================
+CREATE TABLE party_roles (
+    id           BIGSERIAL PRIMARY KEY,
+    party_id     BIGINT       NOT NULL,
+    role_type_id BIGINT       NOT NULL,
+    valid_from   DATE,
+    valid_to     DATE,
+    status       VARCHAR(20)  NOT NULL DEFAULT 'active'
+                 CHECK (status IN ('active', 'ended')),
+    note         VARCHAR(255),
+    created_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    -- パーティ削除時にロール付与だけ残る意味はないため CASCADE。
+    CONSTRAINT fk_party_roles_party
+        FOREIGN KEY (party_id) REFERENCES parties (id)
+        ON DELETE CASCADE,
+    -- 使用中ロール種別の削除はエラーで気付かせる（districts.parent_id と同じ思想）。
+    CONSTRAINT fk_party_roles_role_type
+        FOREIGN KEY (role_type_id) REFERENCES role_types (id)
+        ON DELETE RESTRICT,
+    CONSTRAINT chk_party_roles_period
+        CHECK (valid_from IS NULL OR valid_to IS NULL OR valid_from <= valid_to)
+);
+
+COMMENT ON TABLE party_roles IS 'パーティロール: パーティとロール種別の多対多に有効期間を持たせた関連。valid_to IS NULL が現在有効、履歴は valid_to を埋め status=ended として行を残す';
+COMMENT ON COLUMN party_roles.party_id IS 'パーティID';
+COMMENT ON COLUMN party_roles.role_type_id IS 'ロール種別ID';
+COMMENT ON COLUMN party_roles.valid_from IS '有効開始日';
+COMMENT ON COLUMN party_roles.valid_to IS '有効終了日。NULL は現在有効を意味する';
+COMMENT ON COLUMN party_roles.status IS '状態。active/ended';
+COMMENT ON COLUMN party_roles.note IS '備考';
+
+-- 同一パーティ×同一ロールの「現在有効」行は1件のみ（履歴行は対象外）。
+CREATE UNIQUE INDEX uq_party_roles_active
+    ON party_roles (party_id, role_type_id)
+    WHERE valid_to IS NULL AND status = 'active';
+CREATE INDEX idx_party_roles_party_id ON party_roles (party_id);
+CREATE INDEX idx_party_roles_role_type_id ON party_roles (role_type_id);
+
+CREATE TRIGGER trg_party_roles_set_updated_at
+    BEFORE UPDATE ON party_roles
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
+
+-- =====================================================================
+-- 10. 世帯所属（household_memberships）
+--     パーティ⇔世帯の接続。member_role / succession_order は
+--     household_members と同値・同意味（将来統合時に変換不要とするため）。
+--     household_member_id は並存期の生成元トレース・突合検証用。
+-- =====================================================================
+CREATE TABLE household_memberships (
+    id                  BIGSERIAL PRIMARY KEY,
+    party_id            BIGINT       NOT NULL,
+    household_id        BIGINT       NOT NULL,
+    member_role         VARCHAR(20)  NOT NULL
+                        CHECK (member_role IN ('head', 'former_head', 'family')),
+    succession_order    SMALLINT,
+    household_member_id BIGINT,
+    note                VARCHAR(255),
+    created_at          TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    -- パーティ削除時に所属関係だけ残る意味はないため CASCADE。
+    CONSTRAINT fk_household_memberships_party
+        FOREIGN KEY (party_id) REFERENCES parties (id)
+        ON DELETE CASCADE,
+    -- 世帯消滅時に所属関係だけ残る意味はないため CASCADE（household_members と同思想）。
+    CONSTRAINT fk_household_memberships_household
+        FOREIGN KEY (household_id) REFERENCES households (id)
+        ON DELETE CASCADE,
+    -- 並存期の由来トレース。生成元 household_members 行が消えても所属自体は残す。
+    CONSTRAINT fk_household_memberships_member
+        FOREIGN KEY (household_member_id) REFERENCES household_members (id)
+        ON DELETE SET NULL,
+    CONSTRAINT uq_household_memberships_party_household
+        UNIQUE (party_id, household_id)
+);
+
+COMMENT ON TABLE household_memberships IS '世帯所属: パーティと世帯の接続。member_role/succession_order は household_members と同値・同意味（将来統合時に変換不要とするための設計）';
+COMMENT ON COLUMN household_memberships.party_id IS 'パーティID';
+COMMENT ON COLUMN household_memberships.household_id IS '世帯ID';
+COMMENT ON COLUMN household_memberships.member_role IS '役割。head/former_head/family';
+COMMENT ON COLUMN household_memberships.succession_order IS '継承順。前戸主の順序';
+COMMENT ON COLUMN household_memberships.household_member_id IS '生成元 household_members ID。並存期の由来トレース・突合検証用';
+COMMENT ON COLUMN household_memberships.note IS '備考';
+
+-- 現戸主1件/世帯。並存期は household_members 側の同制約と「併存」させる
+-- （正は household_members 側。移設ではない）。
+CREATE UNIQUE INDEX uq_household_memberships_head
+    ON household_memberships (household_id)
+    WHERE member_role = 'head';
+CREATE INDEX idx_household_memberships_household_id ON household_memberships (household_id);
+CREATE INDEX idx_household_memberships_party_id ON household_memberships (party_id);
+
+CREATE TRIGGER trg_household_memberships_set_updated_at
+    BEFORE UPDATE ON household_memberships
+    FOR EACH ROW
+    EXECUTE FUNCTION set_updated_at();
+
+-- =====================================================================
+-- 11. 認証アカウント（user_accounts）
+--     1 party = 0..1 account。認証処理の実装は別スコープ（器のみ用意）。
+--     permission はコードが認可分岐に使うシステム enum のため CHECK
+--     （フロント SectionStaff.tsx の admin/staff/readonly と整合）。
+--     業務ロール（role_types）と認可権限（permission）は直交概念として分離。
+--     アカウントは origin='manual' のパーティにのみ付与する（運用ルール）。
+-- =====================================================================
+CREATE TABLE user_accounts (
+    id                 BIGSERIAL PRIMARY KEY,
+    party_id           BIGINT       NOT NULL,
+    login_id           VARCHAR(50)  NOT NULL,
+    password_hash      VARCHAR(255) NOT NULL,
+    permission         VARCHAR(20)  NOT NULL DEFAULT 'staff'
+                       CHECK (permission IN ('admin', 'staff', 'readonly')),
+    status             VARCHAR(20)  NOT NULL DEFAULT 'active'
+                       CHECK (status IN ('active', 'locked', 'disabled')),
+    last_login_at      TIMESTAMP,
+    failed_login_count SMALLINT     NOT NULL DEFAULT 0,
+    created_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    -- アカウントが親削除で意図せず消えるのは事故のため RESTRICT
+    -- （parties は soft delete が原則）。
+    CONSTRAINT fk_user_accounts_party
+        FOREIGN KEY (party_id) REFERENCES parties (id)
+        ON DELETE RESTRICT,
+    CONSTRAINT uq_user_accounts_party UNIQUE (party_id),
+    CONSTRAINT uq_user_accounts_login_id UNIQUE (login_id)
+);
+
+COMMENT ON TABLE user_accounts IS '認証アカウント: 1パーティにつき0〜1件のログインアカウント。認証処理自体の実装は別スコープで、本テーブルは器のみを用意する';
+COMMENT ON COLUMN user_accounts.party_id IS 'パーティID';
+COMMENT ON COLUMN user_accounts.login_id IS 'ログインID';
+COMMENT ON COLUMN user_accounts.password_hash IS 'パスワードハッシュ';
+COMMENT ON COLUMN user_accounts.permission IS '権限。admin/staff/readonly（フロント SectionStaff.tsx の権限区分と整合）';
+COMMENT ON COLUMN user_accounts.status IS '状態。active/locked/disabled';
+COMMENT ON COLUMN user_accounts.last_login_at IS '最終ログイン日時';
+COMMENT ON COLUMN user_accounts.failed_login_count IS 'ログイン失敗回数';
+
+CREATE TRIGGER trg_user_accounts_set_updated_at
+    BEFORE UPDATE ON user_accounts
     FOR EACH ROW
     EXECUTE FUNCTION set_updated_at();

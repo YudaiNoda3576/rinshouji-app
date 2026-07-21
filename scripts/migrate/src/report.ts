@@ -21,6 +21,9 @@ export interface CountSummary {
   cemeteryPlots: number;
   columbariumUnits: number;
   deceased: number;
+  partiesImported: number;
+  householdMemberships: number;
+  partyRoles: number;
 }
 
 interface WarnEntry {
@@ -46,6 +49,9 @@ export class Report {
     cemeteryPlots: 0,
     columbariumUnits: 0,
     deceased: 0,
+    partiesImported: 0,
+    householdMemberships: 0,
+    partyRoles: 0,
   };
 
   private readonly warnings = new Map<string, WarnEntry[]>();
@@ -103,6 +109,9 @@ export class Report {
     console.log(`cemetery_plots: ${c.cemeteryPlots}`);
     console.log(`columbarium_units: ${c.columbariumUnits}`);
     console.log(`deceased_persons: ${c.deceased}`);
+    console.log(
+      `parties(import): ${c.partiesImported} / household_memberships: ${c.householdMemberships} / party_roles: ${c.partyRoles}`,
+    );
     console.log('==== 警告カテゴリ別件数 ====');
     for (const [cat, n] of this.warnCountByCategory()) {
       console.log(`  ${cat}: ${n}`);
@@ -133,6 +142,9 @@ export class Report {
     lines.push(`| cemetery_plots | ${c.cemeteryPlots} |`);
     lines.push(`| columbarium_units | ${c.columbariumUnits} |`);
     lines.push(`| deceased_persons | ${c.deceased} |`);
+    lines.push(`| parties（origin=import） | ${c.partiesImported} |`);
+    lines.push(`| household_memberships | ${c.householdMemberships} |`);
+    lines.push(`| party_roles | ${c.partyRoles} |`);
     lines.push('');
   }
 

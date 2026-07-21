@@ -1,12 +1,14 @@
 /**
- * フェーズ②オーケストレーション: import_records → 本番 7 テーブル。
- * 本番テーブルを TRUNCATE RESTART IDENTITY CASCADE で洗い替えて冪等化する。
+ * フェーズ②③オーケストレーション: import_records → 本番 7 テーブル → parties。
+ * 本番テーブルを TRUNCATE RESTART IDENTITY CASCADE で洗い替えて冪等化した後、
+ * 同一トランザクション内でフェーズ③（build-parties.ts）を実行する。
  */
 import type { PoolClient } from 'pg';
 import { PRODUCTION_TABLES, SOURCE_KAKOCHO, SOURCE_MEIBO } from './config.js';
 import { buildDistricts } from './districts.js';
 import { transformHouseholds, type MeiboRecord } from './transform-households.js';
 import { transformDeceased, type KakochoRecord } from './transform-deceased.js';
+import { buildParties } from './build-parties.js';
 import type { Report } from './report.js';
 
 export async function runTransformPhase(
@@ -28,6 +30,9 @@ export async function runTransformPhase(
 
     const houseNoMap = await transformHouseholds(client, meibo, districts, report);
     await transformDeceased(client, kakocho, houseNoMap, report);
+
+    // フェーズ③: household_members から parties を再生成（同一トランザクション内）。
+    await buildParties(client, report);
 
     await client.query('COMMIT');
   } catch (err) {

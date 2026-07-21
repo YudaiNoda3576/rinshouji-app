@@ -1,18 +1,22 @@
 /**
  * 移行 CLI エントリポイント。
  *   --import    フェーズ①のみ（CSV → import_records。--meibo/--kakocho 必須）
- *   --transform フェーズ②のみ（import_records → 本番テーブル）
- *   --all       ①②を連続実行（既定。--meibo/--kakocho 必須）
+ *   --transform フェーズ②③（import_records → 本番テーブル → parties 再生成）
+ *   --parties   フェーズ③のみ（household_members → parties 再生成。
+ *               CSV 引数不要、単独トランザクションで実行）
+ *   --all       ①②③を連続実行（既定。--meibo/--kakocho 必須）
  * 接続先は DATABASE_URL 環境変数（既定: ローカル compose の postgres）。
  */
+import type { PoolClient } from 'pg';
 import { createPool } from './db.js';
 import { runImportPhase } from './import-phase.js';
 import { runTransformPhase } from './transform-phase.js';
+import { buildParties } from './build-parties.js';
 import { Report } from './report.js';
 import { REPORT_DIR } from './config.js';
 
 interface CliOptions {
-  readonly mode: 'all' | 'import' | 'transform';
+  readonly mode: 'all' | 'import' | 'transform' | 'parties';
   readonly meibo: string | null;
   readonly kakocho: string | null;
 }
@@ -33,6 +37,9 @@ function parseArgs(argv: readonly string[]): CliOptions {
         break;
       case '--transform':
         mode = 'transform';
+        break;
+      case '--parties':
+        mode = 'parties';
         break;
       case '--meibo':
         meibo = argv[i + 1] ?? null;
@@ -58,6 +65,18 @@ function requirePaths(opts: CliOptions): { meibo: string; kakocho: string } {
   return { meibo: opts.meibo, kakocho: opts.kakocho };
 }
 
+/** フェーズ③のみを単独トランザクションで実行する（既存 household_members から再生成）。 */
+async function runPartiesOnly(client: PoolClient, report: Report): Promise<void> {
+  await client.query('BEGIN');
+  try {
+    await buildParties(client, report);
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  }
+}
+
 async function main(): Promise<void> {
   const opts = parseArgs(process.argv.slice(2));
   const pool = createPool();
@@ -65,11 +84,15 @@ async function main(): Promise<void> {
   const report = new Report();
 
   try {
-    if (opts.mode !== 'transform') {
-      await runImportPhase(client, requirePaths(opts), report);
-    }
-    if (opts.mode !== 'import') {
-      await runTransformPhase(client, report);
+    if (opts.mode === 'parties') {
+      await runPartiesOnly(client, report);
+    } else {
+      if (opts.mode !== 'transform') {
+        await runImportPhase(client, requirePaths(opts), report);
+      }
+      if (opts.mode !== 'import') {
+        await runTransformPhase(client, report);
+      }
     }
   } finally {
     client.release();

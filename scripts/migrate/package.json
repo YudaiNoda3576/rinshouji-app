@@ -8,6 +8,7 @@
     "migrate": "tsx src/cli.ts --all",
     "migrate:import": "tsx src/cli.ts --import",
     "migrate:transform": "tsx src/cli.ts --transform",
+    "migrate:parties": "tsx src/cli.ts --parties",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
