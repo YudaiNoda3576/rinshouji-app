@@ -1,0 +1,109 @@
+# Render.com デプロイ定義。
+#
+# サブドメイン(*.onrender.com)はグローバルに一意のため、以下のサービス名が
+# 既に他ユーザーに使われている場合は Render 側で別名が払い出される。
+# その場合は、フロント側 routes の rewrite destination を実際に払い出された
+# URL に合わせて修正すること。
+
+services:
+  # ---------------------------------------------------------------------
+  # 本番 API (Hono + PostgreSQL)
+  # ---------------------------------------------------------------------
+  - type: web
+    name: rinshouji-api
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: app/backend
+    branch: main
+    autoDeploy: false
+    # Render は NODE_ENV=production を既定設定するため、実行に必要な
+    # devDependencies の tsx を含めてインストールする
+    buildCommand: npm ci --include=dev
+    startCommand: npm start
+    healthCheckPath: /api/hello
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: TZ
+        value: Asia/Tokyo
+      - key: DATABASE_SSL
+        value: "true"
+      - key: DATABASE_URL
+        # Neon の pooled 接続文字列を Render Dashboard で設定する
+        sync: false
+
+  # ---------------------------------------------------------------------
+  # 本番フロントエンド (React + Vite 静的ビルド)
+  # ---------------------------------------------------------------------
+  - type: web
+    name: rinshouji-web
+    runtime: static
+    rootDir: app/frontend
+    branch: main
+    autoDeploy: false
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+    routes:
+      # nginx の proxy_pass 相当。同一オリジンを維持するため CORS 不要
+      - type: rewrite
+        source: /api/*
+        destination: https://rinshouji-api.onrender.com/api/*
+      # SPA フォールバック
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  # ---------------------------------------------------------------------
+  # dev API (Hono + PostgreSQL)
+  # ---------------------------------------------------------------------
+  - type: web
+    name: rinshouji-api-dev
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: app/backend
+    branch: develop
+    autoDeploy: true
+    # Render は NODE_ENV=production を既定設定するため、実行に必要な
+    # devDependencies の tsx を含めてインストールする
+    buildCommand: npm ci --include=dev
+    startCommand: npm start
+    healthCheckPath: /api/hello
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: TZ
+        value: Asia/Tokyo
+      - key: DATABASE_SSL
+        value: "true"
+      - key: DATABASE_URL
+        # Neon の pooled 接続文字列を Render Dashboard で設定する
+        sync: false
+
+  # ---------------------------------------------------------------------
+  # dev フロントエンド (React + Vite 静的ビルド)
+  # ---------------------------------------------------------------------
+  - type: web
+    name: rinshouji-web-dev
+    runtime: static
+    rootDir: app/frontend
+    branch: develop
+    autoDeploy: true
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+    routes:
+      # nginx の proxy_pass 相当。同一オリジンを維持するため CORS 不要
+      - type: rewrite
+        source: /api/*
+        destination: https://rinshouji-api-dev.onrender.com/api/*
+      # SPA フォールバック
+      - type: rewrite
+        source: /*
+        destination: /index.html
