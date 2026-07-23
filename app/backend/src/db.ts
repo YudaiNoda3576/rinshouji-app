@@ -6,7 +6,11 @@ import { env } from "./config/env.js";
 types.setTypeParser(1082, (value: string) => value);
 
 // PostgreSQL 接続プール。アプリ全体で単一のプールを共有する。
-export const pool = new Pool({ connectionString: env.databaseUrl });
+export const pool = new Pool({
+  connectionString: env.databaseUrl,
+  // Neon などのマネージド Postgres はパブリック CA 署名証明書のため完全検証で接続できる
+  ssl: env.databaseSsl ? { rejectUnauthorized: true } : undefined,
+});
 
 /**
  * BIGINT/BIGSERIAL 列は node-postgres が精度保持のため文字列で返すため、

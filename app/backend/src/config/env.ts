@@ -22,7 +22,13 @@ function readDatabaseUrl(): string {
   return raw;
 }
 
+// Neon 等のマネージド Postgres は TLS 必須のため、DATABASE_SSL=true で SSL 接続を有効化する。
+function readDatabaseSsl(): boolean {
+  return process.env.DATABASE_SSL === "true";
+}
+
 export const env = {
   port: readPort(),
   databaseUrl: readDatabaseUrl(),
+  databaseSsl: readDatabaseSsl(),
 } as const;
